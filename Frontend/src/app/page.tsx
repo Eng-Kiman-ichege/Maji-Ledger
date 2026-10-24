@@ -1,69 +1,336 @@
-import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="relative min-h-screen overflow-hidden">
+
+      {/* ── Animated background blobs ── */}
+      <div
+        className="blob"
+        style={{
+          width: 600,
+          height: 600,
+          background: "var(--color-primary)",
+          top: "-200px",
+          left: "-100px",
+          animationDelay: "0s",
+        }}
+      />
+      <div
+        className="blob"
+        style={{
+          width: 400,
+          height: 400,
+          background: "var(--color-accent)",
+          top: "40%",
+          right: "-80px",
+          animationDelay: "3s",
+        }}
+      />
+      <div
+        className="blob"
+        style={{
+          width: 300,
+          height: 300,
+          background: "#8b5cf6",
+          bottom: "10%",
+          left: "20%",
+          animationDelay: "5s",
+        }}
+      />
+
+      {/* ── Nav ── */}
+      <nav
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          borderBottom: "1px solid rgba(148,163,184,0.08)",
+          background: "rgba(3,7,18,0.8)",
+          backdropFilter: "blur(16px)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1200,
+            margin: "0 auto",
+            padding: "16px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          {/* Logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: "var(--gradient-brand)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 18,
+              }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              💧
+            </div>
+            <span
+              style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontWeight: 800,
+                fontSize: 20,
+                letterSpacing: "-0.5px",
+              }}
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <span className="gradient-text">Maji</span>{" "}
+              <span style={{ color: "var(--color-text-primary)" }}>Ledger</span>
+            </span>
+          </div>
+
+          {/* Nav links */}
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <Link
+              href="/dashboard"
+              style={{
+                color: "var(--color-text-muted)",
+                textDecoration: "none",
+                fontSize: 14,
+                fontWeight: 500,
+                transition: "color 0.2s",
+              }}
+            >
+              Dashboard
+            </Link>
+            <Link href="/dashboard" className="btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>
+              Get Started
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </nav>
+
+      {/* ── Hero ── */}
+      <section
+        style={{
+          maxWidth: 1200,
+          margin: "0 auto",
+          padding: "100px 24px 80px",
+          textAlign: "center",
+          position: "relative",
+          zIndex: 10,
+        }}
+      >
+        {/* Badge */}
+        <div className="fade-up" style={{ marginBottom: 28, display: "inline-block" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 16px",
+              borderRadius: 100,
+              border: "1px solid rgba(14,165,233,0.3)",
+              background: "rgba(14,165,233,0.08)",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--color-primary)",
+              letterSpacing: "0.02em",
+            }}
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-accent)", display: "inline-block" }} />
+            Prepaid Water Billing — Reimagined
+          </span>
         </div>
-      </main>
-    </div>
+
+        {/* Headline */}
+        <h1
+          className="fade-up fade-up-1"
+          style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: "clamp(42px, 6vw, 76px)",
+            fontWeight: 800,
+            lineHeight: 1.1,
+            letterSpacing: "-2px",
+            margin: "0 0 24px",
+          }}
+        >
+          Smart Water Billing
+          <br />
+          <span className="gradient-text">for Modern Properties</span>
+        </h1>
+
+        {/* Sub */}
+        <p
+          className="fade-up fade-up-2"
+          style={{
+            fontSize: "clamp(16px, 2vw, 20px)",
+            color: "var(--color-text-muted)",
+            lineHeight: 1.7,
+            maxWidth: 640,
+            margin: "0 auto 44px",
+          }}
+        >
+          Tenants buy prepaid water tokens instantly via M-Pesa or QR code scan.
+          Property owners get full portfolio visibility — meters, payments, and token history — all in one place.
+        </p>
+
+        {/* CTAs */}
+        <div className="fade-up fade-up-3" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+          <Link href="/dashboard" className="btn-primary">
+            Open Dashboard →
+          </Link>
+          <Link href="/pay/demo" className="btn-outline">
+            Try Scan to Pay
+          </Link>
+        </div>
+
+        {/* Stats row */}
+        <div
+          className="fade-up fade-up-4"
+          style={{
+            display: "flex",
+            gap: 32,
+            justifyContent: "center",
+            flexWrap: "wrap",
+            marginTop: 72,
+            paddingTop: 40,
+            borderTop: "1px solid rgba(148,163,184,0.1)",
+          }}
+        >
+          {[
+            { value: "< 30s", label: "Token delivery time" },
+            { value: "2 channels", label: "QR & Paybill/USSD" },
+            { value: "100%", label: "Transaction traceability" },
+          ].map((stat) => (
+            <div key={stat.label} style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontSize: 36,
+                  fontWeight: 800,
+                  letterSpacing: "-1px",
+                  lineHeight: 1,
+                  marginBottom: 6,
+                }}
+                className="gradient-text"
+              >
+                {stat.value}
+              </div>
+              <div style={{ fontSize: 13, color: "var(--color-text-muted)", fontWeight: 500 }}>
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Feature grid ── */}
+      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "60px 24px 100px", position: "relative", zIndex: 10 }}>
+        <h2
+          style={{
+            textAlign: "center",
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: "clamp(28px, 4vw, 42px)",
+            fontWeight: 700,
+            letterSpacing: "-1px",
+            marginBottom: 48,
+          }}
+        >
+          Everything you need,{" "}
+          <span className="gradient-text">nothing you don&apos;t</span>
+        </h2>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: 20,
+          }}
+        >
+          {[
+            {
+              icon: "📲",
+              title: "Scan to Pay",
+              desc: "Each meter has a QR sticker. Customers scan, verify their apartment details, enter an amount, and pay — in under a minute.",
+            },
+            {
+              icon: "📡",
+              title: "Paybill & USSD",
+              desc: "Customers can also pay via M-Pesa Paybill or Airtel Money. Both channels go through the same backend pipeline.",
+            },
+            {
+              icon: "🏘️",
+              title: "Property Management",
+              desc: "Manage multiple properties, buildings, apartments, tenants, and meters. Historical assignments are always preserved.",
+            },
+            {
+              icon: "🪙",
+              title: "STS Token Generation",
+              desc: "Tokens are generated through the STS platform after payment confirmation. Delivered to the customer by SMS.",
+            },
+            {
+              icon: "📊",
+              title: "Portfolio Dashboard",
+              desc: "Owners see only properties they are authorised for. Admins have configurable portfolio-wide visibility.",
+            },
+            {
+              icon: "🔁",
+              title: "Full Reconciliation",
+              desc: "Every transaction maps to a meter, apartment, building, and property. Audit trails are immutable.",
+            },
+          ].map((f) => (
+            <div
+              key={f.title}
+              className="glass-card"
+              style={{
+                padding: "28px 24px",
+                transition: "transform 0.2s ease, border-color 0.2s ease",
+                cursor: "default",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
+                (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(14,165,233,0.3)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(148,163,184,0.1)";
+              }}
+            >
+              <div style={{ fontSize: 32, marginBottom: 14 }}>{f.icon}</div>
+              <h3
+                style={{
+                  fontSize: 17,
+                  fontWeight: 700,
+                  marginBottom: 10,
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                }}
+              >
+                {f.title}
+              </h3>
+              <p style={{ fontSize: 14, color: "var(--color-text-muted)", lineHeight: 1.65, margin: 0 }}>
+                {f.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer
+        style={{
+          borderTop: "1px solid rgba(148,163,184,0.08)",
+          padding: "28px 24px",
+          textAlign: "center",
+          color: "var(--color-text-dim)",
+          fontSize: 13,
+          position: "relative",
+          zIndex: 10,
+        }}
+      >
+        © {new Date().getFullYear()} Maji Ledger — Prepaid Water Billing & Property Management Platform.
+        &nbsp; Phase 1 of 3 under active development.
+      </footer>
+    </main>
   );
 }
