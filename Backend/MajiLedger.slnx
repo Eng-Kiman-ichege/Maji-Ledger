@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Application/">
+    <Project Path="Application/MajiLedger.Application.csproj" />
+  </Folder>
+  <Folder Name="/Domain/">
+    <Project Path="Domain/MajiLedger.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="Infrastructure/MajiLedger.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/WebAPI/">
+    <Project Path="WebAPI/MajiLedger.WebAPI.csproj" />
+  </Folder>
+</Solution>
