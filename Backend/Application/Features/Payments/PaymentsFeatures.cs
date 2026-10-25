@@ -98,9 +98,14 @@ public class GetScanToPayLandingHandler(IApplicationDbContext db)
                 .ThenInclude(a => a != null ? a.Building : null)
                     .ThenInclude(b => b != null ? b.Property : null)
             .Include(q => q.PaymentProviderConfig)
-            .FirstOrDefaultAsync(q => q.PublicToken == request.PublicToken
-                                   && q.Status == QrCodeStatus.Active, ct)
+            .FirstOrDefaultAsync(q => q.PublicToken == request.PublicToken, ct)
             ?? throw new NotFoundException("QrCode", request.PublicToken);
+
+        if (qr.Status == QrCodeStatus.Disabled)
+            throw new ConflictException("This QR code has been temporarily disabled by property management.");
+
+        if (qr.Status == QrCodeStatus.Revoked)
+            throw new ConflictException("This QR code is permanently revoked and is no longer active for billing.");
 
         var meter = qr.Meter;
         var apt = meter.CurrentApartment;
@@ -162,9 +167,14 @@ public class InitiateQrPaymentHandler(IApplicationDbContext db)
         var qr = await db.QrCodeRegistrations
             .Include(q => q.Meter)
             .Include(q => q.PaymentProviderConfig)
-            .FirstOrDefaultAsync(q => q.PublicToken == cmd.PublicToken
-                                   && q.Status == QrCodeStatus.Active, ct)
+            .FirstOrDefaultAsync(q => q.PublicToken == cmd.PublicToken, ct)
             ?? throw new NotFoundException("QrCode", cmd.PublicToken);
+
+        if (qr.Status == QrCodeStatus.Disabled)
+            throw new ConflictException("Payment cannot be initiated because this QR code has been temporarily disabled.");
+
+        if (qr.Status == QrCodeStatus.Revoked)
+            throw new ConflictException("Payment cannot be initiated because this QR code is permanently revoked.");
 
         if (qr.Meter.Status != MeterStatus.Active)
             throw new ConflictException($"Meter '{qr.Meter.MaskedIdentifier}' is not active.");
