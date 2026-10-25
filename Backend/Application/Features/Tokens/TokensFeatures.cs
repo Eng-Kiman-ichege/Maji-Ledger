@@ -91,7 +91,7 @@ public class GetTokenHandler(IApplicationDbContext db)
             .FirstOrDefaultAsync(x => x.Id == request.WaterTokenId, ct)
             ?? throw new NotFoundException(nameof(WaterToken), request.WaterTokenId);
 
-        return MapToDto(t);
+        return TokenDtoMapper.MapToDto(t);
     }
 }
 
@@ -106,7 +106,7 @@ public class GetTokenByPurchaseHandler(IApplicationDbContext db)
             .FirstOrDefaultAsync(x => x.WaterPurchaseId == request.WaterPurchaseId, ct)
             ?? throw new NotFoundException(nameof(WaterToken), request.WaterPurchaseId);
 
-        return MapToDto(t);
+        return TokenDtoMapper.MapToDto(t);
     }
 }
 

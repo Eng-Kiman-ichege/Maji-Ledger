@@ -131,7 +131,7 @@ public class GetPaymentAttemptHandler(IApplicationDbContext db)
             .FirstOrDefaultAsync(x => x.Id == request.AttemptId, ct)
             ?? throw new NotFoundException(nameof(PaymentAttempt), request.AttemptId);
 
-        return MapToDto(a);
+        return PaymentDtoMapper.MapToDto(a);
     }
 }
 
@@ -139,7 +139,8 @@ public class GetPaymentHistoryHandler(IApplicationDbContext db)
     : IRequestHandler<GetPaymentHistoryQuery, List<PaymentAttemptDto>>
 {
     public async Task<List<PaymentAttemptDto>> Handle(GetPaymentHistoryQuery request, CancellationToken ct)
-        => await db.PaymentAttempts
+    {
+        var attempts = await db.PaymentAttempts
             .Where(a => a.MeterId == request.MeterId)
             .Include(a => a.Meter)
             .Include(a => a.Payment).ThenInclude(p => p != null ? p.WaterPurchase : null)
@@ -147,8 +148,10 @@ public class GetPaymentHistoryHandler(IApplicationDbContext db)
             .OrderByDescending(a => a.InitiatedAt)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(a => MapToDto(a))
             .ToListAsync(ct);
+
+        return attempts.Select(PaymentDtoMapper.MapToDto).ToList();
+    }
 }
 
 public class InitiateQrPaymentHandler(IApplicationDbContext db)
@@ -169,7 +172,7 @@ public class InitiateQrPaymentHandler(IApplicationDbContext db)
         var attempt = PaymentAttempt.Initiate(
             qr.MeterId,
             qr.PaymentProviderConfigId,
-            PaymentChannel.QrCode,
+            PaymentChannel.ScanToPay,
             cmd.CustomerPhone,
             cmd.Amount,
             qr.Id);

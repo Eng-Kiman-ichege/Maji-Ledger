@@ -1,5 +1,6 @@
 using MajiLedger.Application;
 using MajiLedger.Infrastructure.DependencyInjection;
+using MajiLedger.WebAPI.Middleware;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);

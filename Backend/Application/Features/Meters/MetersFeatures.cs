@@ -106,7 +106,7 @@ public class GetMeterHandler(IApplicationDbContext db)
             .FirstOrDefaultAsync(x => x.Id == request.MeterId, ct)
             ?? throw new NotFoundException(nameof(Meter), request.MeterId);
 
-        return ToDetail(m);
+        return MeterDtoMapper.ToDetail(m);
     }
 }
 
@@ -123,7 +123,7 @@ public class GetMeterByQrTokenHandler(IApplicationDbContext db)
                                    && q.Status == QrCodeStatus.Active, ct)
             ?? throw new NotFoundException("QrCodeRegistration", request.PublicToken);
 
-        return ToDetail(qr.Meter);
+        return MeterDtoMapper.ToDetail(qr.Meter);
     }
 }
 
@@ -157,7 +157,7 @@ public class AssignMeterToApartmentHandler(IApplicationDbContext db)
         var existing = await db.MeterAssignments
             .FirstOrDefaultAsync(ma => ma.MeterId == cmd.MeterId && ma.UnassignedAt == null, ct);
         if (existing is not null)
-            existing.Close(cmd.AssignedBy);
+            existing.Close();
 
         // Create new assignment
         var assignment = MeterAssignment.Create(cmd.MeterId, cmd.ApartmentId, cmd.AssignedBy);
@@ -200,15 +200,15 @@ public class RegisterQrCodeHandler(IApplicationDbContext db)
         if (existingQr is not null)
         {
             existingQr.Revoke("Superseded by new registration.", cmd.RegisteredBy);
-            db.QrCodeAuditLogs.Add(QrCodeAuditLog.Write(
-                existingQr.Id, QrCodeEventType.Revoked, cmd.RegisteredBy, "Superseded by new QR registration."));
+            db.QrCodeAuditLogs.Add(QrCodeAuditLog.Record(
+                existingQr.Id, QrCodeAuditEvent.Revoked, cmd.RegisteredBy, "Superseded by new QR registration."));
         }
 
         var registration = QrCodeRegistration.Create(cmd.MeterId, cmd.PaymentProviderConfigId, cmd.RegisteredBy);
         db.QrCodeRegistrations.Add(registration);
 
-        db.QrCodeAuditLogs.Add(QrCodeAuditLog.Write(
-            registration.Id, QrCodeEventType.Registered, cmd.RegisteredBy));
+        db.QrCodeAuditLogs.Add(QrCodeAuditLog.Record(
+            registration.Id, QrCodeAuditEvent.Created, cmd.RegisteredBy));
 
         await db.SaveChangesAsync(ct);
         return registration.PublicToken;
@@ -224,8 +224,8 @@ public class RevokeQrCodeHandler(IApplicationDbContext db)
             ?? throw new NotFoundException(nameof(QrCodeRegistration), cmd.QrCodeRegistrationId);
 
         qr.Revoke(cmd.Reason, cmd.RevokedBy);
-        db.QrCodeAuditLogs.Add(QrCodeAuditLog.Write(
-            qr.Id, QrCodeEventType.Revoked, cmd.RevokedBy, cmd.Reason));
+        db.QrCodeAuditLogs.Add(QrCodeAuditLog.Record(
+            qr.Id, QrCodeAuditEvent.Revoked, cmd.RevokedBy, cmd.Reason));
 
         await db.SaveChangesAsync(ct);
         return Unit.Value;
