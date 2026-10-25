@@ -18,7 +18,7 @@ public class PaymentsController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetScanToPayDetails(string publicToken, CancellationToken ct)
     {
-        var result = await sender.Send(new GetScanToPayDetailsQuery(publicToken), ct);
+        var result = await sender.Send(new GetScanToPayLandingQuery(publicToken), ct);
         return Ok(result);
     }
 

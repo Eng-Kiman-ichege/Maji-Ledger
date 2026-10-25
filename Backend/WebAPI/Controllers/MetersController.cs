@@ -60,7 +60,7 @@ public class MetersController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RegisterQrCode(Guid id, [FromBody] RegisterQrCodeRequest request, CancellationToken ct)
     {
-        var publicToken = await sender.Send(new RegisterQrCodeCommand(id, request.PaymentProviderConfigId, request.RegisteredBy), ct);
+        var publicToken = await sender.Send(new RegisterQrCodeCommand(id, request.PaymentProviderConfigId, request.RegisteredBy ?? "System"), ct);
         return Created(string.Empty, new { publicToken, paymentUrl = $"https://pay.majiledger.com/p/{publicToken}" });
     }
 
