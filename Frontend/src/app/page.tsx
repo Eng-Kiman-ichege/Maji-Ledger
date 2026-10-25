@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FeatureCard } from "@/components/ui/FeatureCard";
 
 export default function Home() {
   return (
@@ -280,38 +281,7 @@ export default function Home() {
               desc: "Every transaction maps to a meter, apartment, building, and property. Audit trails are immutable.",
             },
           ].map((f) => (
-            <div
-              key={f.title}
-              className="glass-card"
-              style={{
-                padding: "28px 24px",
-                transition: "transform 0.2s ease, border-color 0.2s ease",
-                cursor: "default",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
-                (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(14,165,233,0.3)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-                (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(148,163,184,0.1)";
-              }}
-            >
-              <div style={{ fontSize: 32, marginBottom: 14 }}>{f.icon}</div>
-              <h3
-                style={{
-                  fontSize: 17,
-                  fontWeight: 700,
-                  marginBottom: 10,
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                }}
-              >
-                {f.title}
-              </h3>
-              <p style={{ fontSize: 14, color: "var(--color-text-muted)", lineHeight: 1.65, margin: 0 }}>
-                {f.desc}
-              </p>
-            </div>
+            <FeatureCard key={f.title} icon={f.icon} title={f.title} desc={f.desc} />
           ))}
         </div>
       </section>

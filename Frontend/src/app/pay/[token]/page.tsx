@@ -6,12 +6,16 @@ export const metadata: Metadata = {
   description: "Pay for prepaid water units securely using M-Pesa or Airtel Money.",
 };
 
+// This is a dynamic payment page — always rendered at request time, never statically cached.
+export const instant = false;
+
 interface PageProps {
   params: Promise<{ token: string }>;
 }
 
 export default async function ScanToPayPage({ params }: PageProps) {
   const { token } = await params;
+
 
   return (
     <main
