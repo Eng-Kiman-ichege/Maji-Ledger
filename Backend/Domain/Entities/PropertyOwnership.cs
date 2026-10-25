@@ -1,17 +1,20 @@
 using MajiLedger.Domain.Common;
+using MajiLedger.Domain.Enums;
 
 namespace MajiLedger.Domain.Entities;
 
 /// <summary>
-/// Links an owner to a property with a role (e.g., primary owner, co-owner).
+/// Links an owner to a property with a role and effective date range.
+/// Historical records are preserved when ownership changes.
 /// </summary>
 public class PropertyOwnership : BaseEntity
 {
     public Guid OwnerId { get; private set; }
     public Guid PropertyId { get; private set; }
-    public string Role { get; private set; } = "Owner";
+    public OwnershipRole Role { get; private set; } = OwnershipRole.PrimaryOwner;
     public DateTime EffectiveFrom { get; private set; }
     public DateTime? EffectiveTo { get; private set; }
+    public string? CreatedBy { get; private set; }
 
     // Navigation
     public Owner Owner { get; private set; } = default!;
@@ -19,14 +22,23 @@ public class PropertyOwnership : BaseEntity
 
     private PropertyOwnership() { }
 
-    public static PropertyOwnership Create(Guid ownerId, Guid propertyId, string role = "Owner")
+    public static PropertyOwnership Create(
+        Guid ownerId,
+        Guid propertyId,
+        OwnershipRole role = OwnershipRole.PrimaryOwner,
+        string? createdBy = null)
     {
         return new PropertyOwnership
         {
             OwnerId = ownerId,
             PropertyId = propertyId,
             Role = role,
-            EffectiveFrom = DateTime.UtcNow
+            EffectiveFrom = DateTime.UtcNow,
+            CreatedBy = createdBy
         };
     }
+
+    public void Close() => EffectiveTo = DateTime.UtcNow;
+
+    public bool IsCurrent => EffectiveTo is null;
 }

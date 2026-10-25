@@ -4,6 +4,7 @@ namespace MajiLedger.Domain.Entities;
 
 /// <summary>
 /// A building or block within a property.
+/// Soft-deleted so historical meter and tenancy records remain linked.
 /// </summary>
 public class Building : AuditableEntity
 {
@@ -18,7 +19,12 @@ public class Building : AuditableEntity
 
     private Building() { }
 
-    public static Building Create(Guid propertyId, string name, int? floorCount = null, string? description = null, string? createdBy = null)
+    public static Building Create(
+        Guid propertyId,
+        string name,
+        int? floorCount = null,
+        string? description = null,
+        string? createdBy = null)
     {
         return new Building
         {
@@ -28,5 +34,14 @@ public class Building : AuditableEntity
             Description = description,
             CreatedBy = createdBy
         };
+    }
+
+    public void Update(string name, int? floorCount, string? description, string updatedBy)
+    {
+        Name = name;
+        FloorCount = floorCount;
+        Description = description;
+        UpdatedBy = updatedBy;
+        MarkUpdated();
     }
 }
