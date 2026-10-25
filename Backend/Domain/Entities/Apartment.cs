@@ -4,6 +4,7 @@ namespace MajiLedger.Domain.Entities;
 
 /// <summary>
 /// An apartment or house unit within a building.
+/// Soft-deleted — tenancy and meter histories must remain traceable.
 /// </summary>
 public class Apartment : AuditableEntity
 {
@@ -15,11 +16,17 @@ public class Apartment : AuditableEntity
     // Navigation
     public Building Building { get; private set; } = default!;
     public ICollection<Tenancy> Tenancies { get; private set; } = [];
-    public ICollection<Meter> Meters { get; private set; } = [];
+    public ICollection<MeterAssignment> MeterAssignments { get; private set; } = [];
+    public ICollection<SharedMeterBillingPoint> SharedBillingPoints { get; private set; } = [];
 
     private Apartment() { }
 
-    public static Apartment Create(Guid buildingId, string unitNumber, string? floor = null, string? description = null, string? createdBy = null)
+    public static Apartment Create(
+        Guid buildingId,
+        string unitNumber,
+        string? floor = null,
+        string? description = null,
+        string? createdBy = null)
     {
         return new Apartment
         {

@@ -1,9 +1,12 @@
 using MajiLedger.Domain.Common;
+using MajiLedger.Domain.Enums;
 
 namespace MajiLedger.Domain.Entities;
 
 /// <summary>
 /// A tenant who occupies an apartment under a tenancy agreement.
+/// Not a system user — tenants are anonymous purchasers identified by phone.
+/// (Tenant portal / login is a future roadmap item.)
 /// </summary>
 public class Tenant : AuditableEntity
 {
@@ -11,13 +14,19 @@ public class Tenant : AuditableEntity
     public string PhoneNumber { get; private set; } = default!;
     public string? Email { get; private set; }
     public string? NationalId { get; private set; }
+    public bool IsActive { get; private set; } = true;
 
     // Navigation
     public ICollection<Tenancy> Tenancies { get; private set; } = [];
 
     private Tenant() { }
 
-    public static Tenant Create(string fullName, string phoneNumber, string? email = null, string? nationalId = null, string? createdBy = null)
+    public static Tenant Create(
+        string fullName,
+        string phoneNumber,
+        string? email = null,
+        string? nationalId = null,
+        string? createdBy = null)
     {
         return new Tenant
         {
@@ -28,4 +37,6 @@ public class Tenant : AuditableEntity
             CreatedBy = createdBy
         };
     }
+
+    public void Deactivate(string updatedBy) { IsActive = false; UpdatedBy = updatedBy; MarkUpdated(); }
 }
