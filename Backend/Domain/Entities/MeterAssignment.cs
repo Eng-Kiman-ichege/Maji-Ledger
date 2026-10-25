@@ -3,9 +3,8 @@ using MajiLedger.Domain.Common;
 namespace MajiLedger.Domain.Entities;
 
 /// <summary>
-/// Records the full history of meter assignments to apartments.
-/// When a meter is moved to a new apartment, the old assignment is closed
-/// and a new record is created.
+/// Records the full history of meter-to-apartment assignments.
+/// When a meter is reassigned, the old record is closed and a new one created.
 /// </summary>
 public class MeterAssignment : BaseEntity
 {
@@ -33,4 +32,6 @@ public class MeterAssignment : BaseEntity
     }
 
     public void Close() => UnassignedAt = DateTime.UtcNow;
+
+    public bool IsActive => UnassignedAt is null;
 }
