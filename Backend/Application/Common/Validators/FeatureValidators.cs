@@ -2,6 +2,7 @@ using FluentValidation;
 using MajiLedger.Application.Features.Meters;
 using MajiLedger.Application.Features.Payments;
 using MajiLedger.Application.Features.Properties;
+using MajiLedger.Application.Features.QrCodes;
 
 namespace MajiLedger.Application.Common.Validators;
 

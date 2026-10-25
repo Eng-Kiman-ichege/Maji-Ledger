@@ -56,6 +56,24 @@ public class MetersController(ISender sender) : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("{id:guid}/shared-billing")]
+    [ProducesResponseType(typeof(List<SharedMeterBillingPointDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSharedBilling(Guid id, CancellationToken ct)
+    {
+        var result = await sender.Send(new GetMeterSharedBillingPointsQuery(id), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/shared-billing")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ConfigureSharedBilling(Guid id, [FromBody] ConfigureSharedBillingRequest request, CancellationToken ct)
+    {
+        await sender.Send(new ConfigureSharedMeterBillingPointsCommand(id, request.Allocations, request.ConfiguredBy), ct);
+        return NoContent();
+    }
+
     [HttpPost("{id:guid}/qr-code")]
     [ProducesResponseType(typeof(QrCodeRegistrationDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -79,3 +97,4 @@ public record AssignMeterRequest(Guid ApartmentId, string? AssignedBy);
 public record UpdateMeterStatusRequest(MeterStatus Status, string UpdatedBy);
 public record RegisterQrCodeRequest(Guid PaymentProviderConfigId, string? RegisteredBy);
 public record RevokeQrCodeRequest(string Reason, string RevokedBy);
+public record ConfigureSharedBillingRequest(List<SharedBillingAllocationInput> Allocations, string ConfiguredBy);

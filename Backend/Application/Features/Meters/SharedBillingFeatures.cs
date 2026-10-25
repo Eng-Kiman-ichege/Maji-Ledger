@@ -83,7 +83,7 @@ public class ConfigureSharedMeterBillingPointsHandler(IApplicationDbContext db)
             .ToListAsync(ct);
 
         if (apartments.Count != apartmentIds.Count)
-            throw new NotFoundException("One or more specified apartments could not be found.");
+            throw new NotFoundException(nameof(Apartment), string.Join(", ", apartmentIds.Except(apartments.Select(a => a.Id))));
 
         var propertyIds = apartments.Select(a => a.Building.PropertyId).Distinct().ToList();
         if (propertyIds.Count > 1)
