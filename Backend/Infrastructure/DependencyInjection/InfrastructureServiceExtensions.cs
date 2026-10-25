@@ -39,6 +39,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IStsTokenService, Services.PlaceholderStsTokenService>();
         services.AddScoped<ISmsGatewayService, Services.PlaceholderSmsGatewayService>();
         services.AddScoped<IPaymentGatewayService, Services.PlaceholderPaymentGatewayService>();
+        services.AddSingleton<IQrCodeGeneratorService, Services.QrCodeGeneratorService>();
 
         return services;
     }
