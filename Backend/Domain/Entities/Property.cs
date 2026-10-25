@@ -50,6 +50,27 @@ public class Property : AuditableEntity
         };
     }
 
+    public void Update(
+        string name,
+        PropertyType type,
+        string? physicalAddress,
+        string? county,
+        string? town,
+        string? postalCode,
+        string? description,
+        string updatedBy)
+    {
+        Name = name;
+        Type = type;
+        PhysicalAddress = physicalAddress;
+        County = county;
+        Town = town;
+        PostalCode = postalCode;
+        Description = description;
+        UpdatedBy = updatedBy;
+        MarkUpdated();
+    }
+
     public void Deactivate(string updatedBy)
     {
         IsActive = false;

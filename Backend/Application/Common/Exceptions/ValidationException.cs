@@ -16,4 +16,16 @@ public class ValidationException : Exception
     public ValidationException(string propertyName, string errorMessage)
         : this(new Dictionary<string, string[]> { [propertyName] = [errorMessage] })
     { }
+
+    public ValidationException(string message)
+        : base(message)
+    {
+        Errors = new Dictionary<string, string[]> { ["General"] = [message] };
+    }
+
+    public ValidationException(IEnumerable<string> errors)
+        : base(string.Join("; ", errors))
+    {
+        Errors = new Dictionary<string, string[]> { ["General"] = errors.ToArray() };
+    }
 }

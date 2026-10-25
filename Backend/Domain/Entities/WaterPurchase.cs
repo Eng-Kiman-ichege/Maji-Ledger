@@ -50,6 +50,7 @@ public class WaterPurchase : BaseEntity
         };
     }
 
+    public void SetUnitsCalculated(decimal units) { UnitsCalculated = units; }
     public void MarkTokenIssued() { Status = WaterPurchaseStatus.TokenIssued; }
     public void MarkTokenFailed() { Status = WaterPurchaseStatus.TokenFailed; }
     public void MarkReconciled() { Status = WaterPurchaseStatus.Reconciled; }
