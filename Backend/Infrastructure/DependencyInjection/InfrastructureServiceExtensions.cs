@@ -33,6 +33,13 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IApplicationDbContext>(sp =>
             sp.GetRequiredService<MajiLedgerDbContext>());
 
+        // Infrastructure & external services
+        services.AddSingleton<IDateTime, Services.DateTimeService>();
+        services.AddScoped<ICurrentUserService, Services.CurrentUserService>();
+        services.AddScoped<IStsTokenService, Services.PlaceholderStsTokenService>();
+        services.AddScoped<ISmsGatewayService, Services.PlaceholderSmsGatewayService>();
+        services.AddScoped<IPaymentGatewayService, Services.PlaceholderPaymentGatewayService>();
+
         return services;
     }
 }
