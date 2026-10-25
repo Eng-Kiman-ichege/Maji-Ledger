@@ -1,15 +1,21 @@
+using MajiLedger.Application;
 using MajiLedger.Infrastructure.DependencyInjection;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ────────────────────────────────────────────
-// 1.  Infrastructure (EF Core, repositories)
+// 1.  Application (MediatR, validators)
+// ────────────────────────────────────────────
+builder.Services.AddApplication();
+
+// ────────────────────────────────────────────
+// 2.  Infrastructure (EF Core, repositories)
 // ────────────────────────────────────────────
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // ────────────────────────────────────────────
-// 2.  API layer
+// 3.  API layer
 // ────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
