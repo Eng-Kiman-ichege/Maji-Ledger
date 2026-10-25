@@ -61,16 +61,6 @@ public record UpdateMeterStatusCommand(
     MeterStatus Status,
     string? UpdatedBy) : IRequest<Unit>;
 
-public record RegisterQrCodeCommand(
-    Guid MeterId,
-    Guid PaymentProviderConfigId,
-    string RegisteredBy) : IRequest<string>;   // returns PublicToken
-
-public record RevokeQrCodeCommand(
-    Guid QrCodeRegistrationId,
-    string Reason,
-    string RevokedBy) : IRequest<Unit>;
-
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
 public class GetMetersByPropertyHandler(IApplicationDbContext db)
@@ -178,55 +168,6 @@ public class UpdateMeterStatusHandler(IApplicationDbContext db)
             ?? throw new NotFoundException(nameof(Meter), cmd.MeterId);
 
         meter.UpdateStatus(cmd.Status, cmd.UpdatedBy);
-        await db.SaveChangesAsync(ct);
-        return Unit.Value;
-    }
-}
-
-public class RegisterQrCodeHandler(IApplicationDbContext db)
-    : IRequestHandler<RegisterQrCodeCommand, string>
-{
-    public async Task<string> Handle(RegisterQrCodeCommand cmd, CancellationToken ct)
-    {
-        if (!await db.Meters.AnyAsync(m => m.Id == cmd.MeterId, ct))
-            throw new NotFoundException(nameof(Meter), cmd.MeterId);
-
-        if (!await db.PaymentProviderConfigs.AnyAsync(p => p.Id == cmd.PaymentProviderConfigId && p.IsActive, ct))
-            throw new NotFoundException(nameof(PaymentProviderConfig), cmd.PaymentProviderConfigId);
-
-        // Revoke existing active QR code for this meter
-        var existingQr = await db.QrCodeRegistrations
-            .FirstOrDefaultAsync(q => q.MeterId == cmd.MeterId && q.Status == QrCodeStatus.Active, ct);
-        if (existingQr is not null)
-        {
-            existingQr.Revoke("Superseded by new registration.", cmd.RegisteredBy);
-            db.QrCodeAuditLogs.Add(QrCodeAuditLog.Record(
-                existingQr.Id, QrCodeAuditEvent.Revoked, cmd.RegisteredBy, "Superseded by new QR registration."));
-        }
-
-        var registration = QrCodeRegistration.Create(cmd.MeterId, cmd.PaymentProviderConfigId, cmd.RegisteredBy);
-        db.QrCodeRegistrations.Add(registration);
-
-        db.QrCodeAuditLogs.Add(QrCodeAuditLog.Record(
-            registration.Id, QrCodeAuditEvent.Created, cmd.RegisteredBy));
-
-        await db.SaveChangesAsync(ct);
-        return registration.PublicToken;
-    }
-}
-
-public class RevokeQrCodeHandler(IApplicationDbContext db)
-    : IRequestHandler<RevokeQrCodeCommand, Unit>
-{
-    public async Task<Unit> Handle(RevokeQrCodeCommand cmd, CancellationToken ct)
-    {
-        var qr = await db.QrCodeRegistrations.FindAsync([cmd.QrCodeRegistrationId], ct)
-            ?? throw new NotFoundException(nameof(QrCodeRegistration), cmd.QrCodeRegistrationId);
-
-        qr.Revoke(cmd.Reason, cmd.RevokedBy);
-        db.QrCodeAuditLogs.Add(QrCodeAuditLog.Record(
-            qr.Id, QrCodeAuditEvent.Revoked, cmd.RevokedBy, cmd.Reason));
-
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

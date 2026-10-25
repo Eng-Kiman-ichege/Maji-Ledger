@@ -1,4 +1,5 @@
 using MajiLedger.Application.Features.Meters;
+using MajiLedger.Application.Features.QrCodes;
 using MajiLedger.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -56,12 +57,12 @@ public class MetersController(ISender sender) : ControllerBase
     }
 
     [HttpPost("{id:guid}/qr-code")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(QrCodeRegistrationDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RegisterQrCode(Guid id, [FromBody] RegisterQrCodeRequest request, CancellationToken ct)
     {
-        var publicToken = await sender.Send(new RegisterQrCodeCommand(id, request.PaymentProviderConfigId, request.RegisteredBy ?? "System"), ct);
-        return Created(string.Empty, new { publicToken, paymentUrl = $"https://pay.majiledger.com/p/{publicToken}" });
+        var result = await sender.Send(new RegisterQrCodeCommand(id, request.PaymentProviderConfigId, request.RegisteredBy ?? "System"), ct);
+        return Created(string.Empty, result);
     }
 
     [HttpDelete("qr-code/{registrationId:guid}")]
@@ -69,7 +70,7 @@ public class MetersController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RevokeQrCode(Guid registrationId, [FromBody] RevokeQrCodeRequest request, CancellationToken ct)
     {
-        await sender.Send(new RevokeQrCodeCommand(registrationId, request.Reason, request.RevokedBy), ct);
+        await sender.Send(new Application.Features.QrCodes.RevokeQrCodeCommand(registrationId, request.Reason, request.RevokedBy), ct);
         return NoContent();
     }
 }
