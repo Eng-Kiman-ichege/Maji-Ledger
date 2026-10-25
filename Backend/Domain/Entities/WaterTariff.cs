@@ -24,6 +24,7 @@ public class WaterTariff : AuditableEntity
     public Property? Property { get; private set; }
     public ICollection<TariffTier> Tiers { get; private set; } = [];
     public ICollection<Meter> Meters { get; private set; } = [];
+    public ICollection<WaterPurchase> WaterPurchases { get; private set; } = [];
 
     private WaterTariff() { }
 
