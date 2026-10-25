@@ -62,6 +62,8 @@ var app = builder.Build();
 // ────────────────────────────────────────────
 // 6.  Middleware pipeline
 // ────────────────────────────────────────────
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
