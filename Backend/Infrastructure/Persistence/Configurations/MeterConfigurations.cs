@@ -19,8 +19,9 @@ public class MeterConfiguration : IEntityTypeConfiguration<Meter>
         b.Property(x => x.CreatedBy).HasMaxLength(200);
         b.Property(x => x.CreatedAt).IsRequired();
 
-        // MaskedIdentifier is computed — not stored
+        // MaskedIdentifier and ActiveQrCode are computed — not stored
         b.Ignore(x => x.MaskedIdentifier);
+        b.Ignore(x => x.ActiveQrCode);
 
         b.HasIndex(x => x.MeterNumber).IsUnique().HasDatabaseName("IX_Meters_MeterNumber");
         b.HasIndex(x => x.CurrentApartmentId).HasDatabaseName("IX_Meters_CurrentApartmentId");

@@ -28,7 +28,8 @@ public class Meter : AuditableEntity
     // Navigation
     public Apartment? CurrentApartment { get; private set; }
     public WaterTariff? Tariff { get; private set; }
-    public QrCodeRegistration? ActiveQrCode { get; private set; }
+    public ICollection<QrCodeRegistration> QrCodes { get; private set; } = [];
+    public QrCodeRegistration? ActiveQrCode => QrCodes.FirstOrDefault(q => q.Status == QrCodeStatus.Active);
     public ICollection<MeterAssignment> Assignments { get; private set; } = [];
     public ICollection<SharedMeterBillingPoint> SharedBillingPoints { get; private set; } = [];
     public ICollection<MeterReading> Readings { get; private set; } = [];
