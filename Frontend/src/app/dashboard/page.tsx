@@ -122,13 +122,12 @@ export default function DashboardPage() {
         <h2
           style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            fontSize: 18,
+            fontSize: 12,
             fontWeight: 700,
             marginBottom: 24,
             color: "var(--color-text-muted)",
             letterSpacing: "0.05em",
-            textTransform: "uppercase",
-            fontSize: 12,
+            textTransform: "uppercase" as const,
           }}
         >
           Planned Modules

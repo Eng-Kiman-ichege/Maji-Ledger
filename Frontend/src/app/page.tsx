@@ -328,7 +328,7 @@ export default function Home() {
           zIndex: 10,
         }}
       >
-        © {new Date().getFullYear()} Maji Ledger — Prepaid Water Billing & Property Management Platform.
+        © 2025 Maji Ledger — Prepaid Water Billing & Property Management Platform.
         &nbsp; Phase 1 of 3 under active development.
       </footer>
     </main>
