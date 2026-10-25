@@ -47,9 +47,9 @@ public record GetMeterByQrTokenQuery(string PublicToken) : IRequest<MeterDetailD
 public record CreateMeterCommand(
     string MeterNumber,
     MeterType Type,
-    string? SerialNumber,
-    Guid? ApartmentId,
-    string? CreatedBy) : IRequest<Guid>;
+    string? SerialNumber = null,
+    Guid? ApartmentId = null,
+    string? CreatedBy = null) : IRequest<Guid>;
 
 public record AssignMeterToApartmentCommand(
     Guid MeterId,

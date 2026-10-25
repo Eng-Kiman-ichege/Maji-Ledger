@@ -23,7 +23,7 @@ public class MeterTests
         meter.SerialNumber.Should().Be(serial);
         meter.Type.Should().Be(MeterType.Prepaid);
         meter.Status.Should().Be(MeterStatus.Active);
-        meter.MaskedIdentifier.Should().Be("••••••••4102");
+        meter.MaskedIdentifier.Should().Be("****4102");
     }
 
     [Fact]
