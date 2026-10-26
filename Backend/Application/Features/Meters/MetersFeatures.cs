@@ -80,7 +80,7 @@ public class GetMetersByPropertyHandler(IApplicationDbContext db)
                 m.Status,
                 m.CurrentApartmentId,
                 m.CurrentApartment != null ? m.CurrentApartment.UnitNumber : null,
-                m.ActiveQrCode != null && m.ActiveQrCode.Status == QrCodeStatus.Active))
+                m.QrCodes.Any(q => q.Status == QrCodeStatus.Active)))
             .ToListAsync(ct);
 }
 
@@ -92,7 +92,7 @@ public class GetMeterHandler(IApplicationDbContext db)
         var m = await db.Meters
             .Include(x => x.CurrentApartment)
             .Include(x => x.Tariff)
-            .Include(x => x.ActiveQrCode)
+            .Include(x => x.QrCodes)
             .FirstOrDefaultAsync(x => x.Id == request.MeterId, ct)
             ?? throw new NotFoundException(nameof(Meter), request.MeterId);
 
@@ -108,7 +108,7 @@ public class GetMeterByQrTokenHandler(IApplicationDbContext db)
         var qr = await db.QrCodeRegistrations
             .Include(q => q.Meter).ThenInclude(m => m.CurrentApartment)
             .Include(q => q.Meter).ThenInclude(m => m.Tariff)
-            .Include(q => q.Meter).ThenInclude(m => m.ActiveQrCode)
+            .Include(q => q.Meter).ThenInclude(m => m.QrCodes)
             .FirstOrDefaultAsync(q => q.PublicToken == request.PublicToken
                                    && q.Status == QrCodeStatus.Active, ct)
             ?? throw new NotFoundException("QrCodeRegistration", request.PublicToken);

@@ -60,8 +60,8 @@ public class QrCodeRegistrationConfiguration : IEntityTypeConfiguration<QrCodeRe
          .HasDatabaseName("UIX_QrCodeRegistrations_MeterId_Active");
 
         b.HasOne(x => x.Meter)
-         .WithOne(x => x.ActiveQrCode)
-         .HasForeignKey<QrCodeRegistration>(x => x.MeterId)
+         .WithMany(x => x.QrCodes)
+         .HasForeignKey(x => x.MeterId)
          .OnDelete(DeleteBehavior.Restrict);
 
         b.HasOne(x => x.PaymentProviderConfig)

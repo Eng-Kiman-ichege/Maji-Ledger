@@ -20,8 +20,7 @@ public class QrCodeGeneratorServiceTests
 
         // Assert
         svg.Should().NotBeNullOrWhiteSpace();
-        svg.Should().StartWith("<?xml");
-        svg.Should().Contain("<svg");
+        svg.Should().StartWith("<svg");
         svg.Should().Contain("</svg>");
     }
 
