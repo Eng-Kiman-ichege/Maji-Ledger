@@ -1,5 +1,6 @@
 using MajiLedger.Application.Common.Exceptions;
 using MajiLedger.Application.Common.Interfaces;
+using MajiLedger.Domain.Entities;
 using MajiLedger.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -210,11 +211,11 @@ public class GetAdminDashboardHandler(IApplicationDbContext db)
         var smsFailed = await db.SmsDeliveryRecords
             .CountAsync(s => s.Status == SmsDeliveryStatus.Failed, ct);
 
-        var financials = BuildFinancials(confirmedPayments, attempts, tokenIssued, tokenFailed, smsDelivered, smsFailed);
-        var channelBreakdown = await BuildChannelBreakdownAsync(db, from, to, propertyIds: null, ct);
+        var financials = DashboardAggregates.BuildFinancials(confirmedPayments, attempts, tokenIssued, tokenFailed, smsDelivered, smsFailed);
+        var channelBreakdown = await DashboardBuilders.BuildChannelBreakdownAsync(db, from, to, propertyIds: null, ct);
 
         // ── Per-property summaries ────────────────────────────────────────────
-        var propertySummaries = await BuildPropertySummariesAsync(db, from, to, propertyIds: null, ct);
+        var propertySummaries = await DashboardBuilders.BuildPropertySummariesAsync(db, from, to, propertyIds: null, ct);
 
         return new AdminDashboardDto(
             totalProperties,
@@ -303,9 +304,9 @@ public class GetOwnerDashboardHandler(IApplicationDbContext db)
         var smsFailed = await db.SmsDeliveryRecords
             .CountAsync(s => tokenIds.Contains(s.WaterTokenId) && s.Status == SmsDeliveryStatus.Failed, ct);
 
-        var financials = BuildFinancials(confirmedPayments, attempts, tokenIssued, tokenFailed, smsDelivered, smsFailed);
-        var channelBreakdown = await BuildChannelBreakdownAsync(db, from, to, authorizedPropertyIds, ct);
-        var propertySummaries = await BuildPropertySummariesAsync(db, from, to, authorizedPropertyIds, ct);
+        var financials = DashboardAggregates.BuildFinancials(confirmedPayments, attempts, tokenIssued, tokenFailed, smsDelivered, smsFailed);
+        var channelBreakdown = await DashboardBuilders.BuildChannelBreakdownAsync(db, from, to, authorizedPropertyIds, ct);
+        var propertySummaries = await DashboardBuilders.BuildPropertySummariesAsync(db, from, to, authorizedPropertyIds, ct);
 
         return new OwnerDashboardDto(
             owner.FullName,
@@ -535,10 +536,143 @@ file static class DashboardHelpers
 
 file static class DashboardBuilders
 {
-    // Method bodies defined below as local helper methods within the handler classes above
-}
+    internal static async Task<ChannelBreakdownDto> BuildChannelBreakdownAsync(
+        IApplicationDbContext db,
+        DateTime from,
+        DateTime to,
+        List<Guid>? propertyIds,
+        CancellationToken ct)
+    {
+        var paymentsQuery = db.Payments
+            .Include(p => p.PaymentAttempt)
+            .Where(p => p.PaidAt >= from && p.PaidAt <= to);
 
-// ── Helper functions factored out of handlers ─────────────────────────────────
+        if (propertyIds != null)
+        {
+            var validMeterIds = await db.Meters
+                .Where(m => m.CurrentApartment != null
+                    && db.Buildings
+                        .Where(b => propertyIds.Contains(b.PropertyId))
+                        .Select(b => b.Id)
+                        .Contains(m.CurrentApartment.BuildingId))
+                .Select(m => m.Id)
+                .ToListAsync(ct);
+
+            paymentsQuery = paymentsQuery.Where(p => validMeterIds.Contains(p.PaymentAttempt.MeterId));
+        }
+
+        var payments = await paymentsQuery.ToListAsync(ct);
+
+        decimal scanAmount = 0m; int scanCount = 0;
+        decimal paybillAmount = 0m; int paybillCount = 0;
+        decimal airtelAmount = 0m; int airtelCount = 0;
+        decimal ussdAmount = 0m; int ussdCount = 0;
+
+        foreach (var p in payments)
+        {
+            switch (p.PaymentAttempt.Channel)
+            {
+                case PaymentChannel.ScanToPay:
+                    scanAmount += p.AmountConfirmed;
+                    scanCount++;
+                    break;
+                case PaymentChannel.MpesaPaybill:
+                    paybillAmount += p.AmountConfirmed;
+                    paybillCount++;
+                    break;
+                case PaymentChannel.AirtelPaybill:
+                    airtelAmount += p.AmountConfirmed;
+                    airtelCount++;
+                    break;
+                case PaymentChannel.Ussd:
+                    ussdAmount += p.AmountConfirmed;
+                    ussdCount++;
+                    break;
+            }
+        }
+
+        return new ChannelBreakdownDto(
+            scanAmount, scanCount,
+            paybillAmount, paybillCount,
+            airtelAmount, airtelCount,
+            ussdAmount, ussdCount);
+    }
+
+    internal static async Task<List<PropertySummaryDto>> BuildPropertySummariesAsync(
+        IApplicationDbContext db,
+        DateTime from,
+        DateTime to,
+        List<Guid>? propertyIds,
+        CancellationToken ct)
+    {
+        var propertiesQuery = db.Properties
+            .Include(p => p.Buildings)
+                .ThenInclude(b => b.Apartments)
+            .AsQueryable();
+
+        if (propertyIds != null)
+        {
+            propertiesQuery = propertiesQuery.Where(p => propertyIds.Contains(p.Id));
+        }
+
+        var properties = await propertiesQuery.ToListAsync(ct);
+        var summaries = new List<PropertySummaryDto>();
+
+        foreach (var prop in properties)
+        {
+            var buildings = prop.Buildings.ToList();
+            var apartments = buildings.SelectMany(b => b.Apartments).ToList();
+            var apartmentIds = apartments.Select(a => a.Id).ToList();
+
+            var meters = await db.Meters
+                .Include(m => m.QrCodes)
+                .Where(m => m.CurrentApartmentId != null && apartmentIds.Contains(m.CurrentApartmentId.Value))
+                .ToListAsync(ct);
+
+            var meterIds = meters.Select(m => m.Id).ToList();
+
+            var activeQrCount = meters
+                .SelectMany(m => m.QrCodes)
+                .Count(q => q.Status == QrCodeStatus.Active);
+
+            var propPayments = await db.Payments
+                .Include(p => p.WaterPurchase)
+                .Include(p => p.PaymentAttempt)
+                .Where(p => meterIds.Contains(p.PaymentAttempt.MeterId)
+                    && p.PaidAt >= from && p.PaidAt <= to)
+                .ToListAsync(ct);
+
+            var propAttempts = await db.PaymentAttempts
+                .Where(a => meterIds.Contains(a.MeterId)
+                    && a.InitiatedAt >= from && a.InitiatedAt <= to)
+                .ToListAsync(ct);
+
+            var confirmedCollections = propPayments.Sum(p => p.AmountConfirmed);
+            var unitsPurchased = propPayments.Sum(p => p.WaterPurchase?.UnitsCalculated ?? 0m);
+            var confirmedCount = propPayments.Count;
+            var pendingCount = propAttempts.Count(a => a.Status == PaymentAttemptStatus.Initiated);
+            var failedCount = propAttempts.Count(a => a.Status == PaymentAttemptStatus.Failed);
+
+            summaries.Add(new PropertySummaryDto(
+                prop.Id,
+                prop.Name,
+                prop.Town,
+                prop.County,
+                prop.IsActive,
+                buildings.Count,
+                apartments.Count,
+                meters.Count,
+                activeQrCount,
+                confirmedCollections,
+                unitsPurchased,
+                confirmedCount,
+                pendingCount,
+                failedCount));
+        }
+
+        return summaries;
+    }
+}
 
 file static class DashboardAggregates
 {
@@ -565,7 +699,6 @@ file static class DashboardAggregates
     }
 }
 
-// Make BuildFinancials accessible from handlers via extension
 file static class HandlerExtensions
 {
     internal static FinancialSummaryDto BuildFinancials(
@@ -574,4 +707,22 @@ file static class HandlerExtensions
         List<PaymentAttempt> attempts,
         int tokenIssued, int tokenFailed, int smsDelivered, int smsFailed)
         => DashboardAggregates.BuildFinancials(confirmedPayments, attempts, tokenIssued, tokenFailed, smsDelivered, smsFailed);
+
+    internal static Task<ChannelBreakdownDto> BuildChannelBreakdownAsync(
+        this object _,
+        IApplicationDbContext db,
+        DateTime from,
+        DateTime to,
+        List<Guid>? propertyIds,
+        CancellationToken ct)
+        => DashboardBuilders.BuildChannelBreakdownAsync(db, from, to, propertyIds, ct);
+
+    internal static Task<List<PropertySummaryDto>> BuildPropertySummariesAsync(
+        this object _,
+        IApplicationDbContext db,
+        DateTime from,
+        DateTime to,
+        List<Guid>? propertyIds,
+        CancellationToken ct)
+        => DashboardBuilders.BuildPropertySummariesAsync(db, from, to, propertyIds, ct);
 }
