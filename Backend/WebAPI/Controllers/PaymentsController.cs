@@ -49,6 +49,17 @@ public class PaymentsController(ISender sender) : ControllerBase
     }
 
     /// <summary>
+    /// Gets all payment attempts across the platform.
+    /// </summary>
+    [HttpGet]
+    [ProducesResponseType(typeof(List<PaymentAttemptDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)
+    {
+        var result = await sender.Send(new GetAllPaymentsQuery(pageSize, page), ct);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Gets payment history for a given meter.
     /// </summary>
     [HttpGet("meters/{meterId:guid}/history")]

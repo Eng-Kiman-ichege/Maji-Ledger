@@ -65,6 +65,9 @@ public record GetPaymentAttemptQuery(Guid AttemptId) : IRequest<PaymentAttemptDt
 public record GetPaymentHistoryQuery(Guid MeterId, int PageSize = 20, int Page = 1)
     : IRequest<List<PaymentAttemptDto>>;
 
+public record GetAllPaymentsQuery(int PageSize = 50, int Page = 1)
+    : IRequest<List<PaymentAttemptDto>>;
+
 // ── Commands ──────────────────────────────────────────────────────────────────
 
 /// <summary>Initiates a payment via QR Scan-to-Pay flow.</summary>
@@ -174,6 +177,24 @@ public class GetPaymentHistoryHandler(IApplicationDbContext db)
     {
         var attempts = await db.PaymentAttempts
             .Where(a => a.MeterId == request.MeterId)
+            .Include(a => a.Meter)
+            .Include(a => a.Payment).ThenInclude(p => p != null ? p.WaterPurchase : null)
+                .ThenInclude(wp => wp != null ? wp.WaterToken : null)
+            .OrderByDescending(a => a.InitiatedAt)
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(ct);
+
+        return attempts.Select(PaymentDtoMapper.MapToDto).ToList();
+    }
+}
+
+public class GetAllPaymentsHandler(IApplicationDbContext db)
+    : IRequestHandler<GetAllPaymentsQuery, List<PaymentAttemptDto>>
+{
+    public async Task<List<PaymentAttemptDto>> Handle(GetAllPaymentsQuery request, CancellationToken ct)
+    {
+        var attempts = await db.PaymentAttempts
             .Include(a => a.Meter)
             .Include(a => a.Payment).ThenInclude(p => p != null ? p.WaterPurchase : null)
                 .ThenInclude(wp => wp != null ? wp.WaterToken : null)

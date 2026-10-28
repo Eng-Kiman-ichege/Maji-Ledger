@@ -11,6 +11,14 @@ namespace MajiLedger.WebAPI.Controllers;
 [Produces("application/json")]
 public class MetersController(ISender sender) : ControllerBase
 {
+    [HttpGet]
+    [ProducesResponseType(typeof(List<MeterDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll([FromQuery] Guid? propertyId, CancellationToken ct)
+    {
+        var result = await sender.Send(new GetMetersQuery(propertyId), ct);
+        return Ok(result);
+    }
+
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(MeterDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

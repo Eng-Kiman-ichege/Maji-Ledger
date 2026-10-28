@@ -36,6 +36,8 @@ public record MeterDetailDto(
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
+public record GetMetersQuery(Guid? PropertyId = null) : IRequest<List<MeterDto>>;
+
 public record GetMetersByPropertyQuery(Guid PropertyId) : IRequest<List<MeterDto>>;
 
 public record GetMeterQuery(Guid MeterId) : IRequest<MeterDetailDto>;
@@ -62,6 +64,38 @@ public record UpdateMeterStatusCommand(
     string? UpdatedBy) : IRequest<Unit>;
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
+
+public class GetMetersHandler(IApplicationDbContext db)
+    : IRequestHandler<GetMetersQuery, List<MeterDto>>
+{
+    public async Task<List<MeterDto>> Handle(GetMetersQuery request, CancellationToken ct)
+    {
+        var query = db.Meters
+            .Include(m => m.CurrentApartment)
+            .Include(m => m.QrCodes)
+            .AsQueryable();
+
+        if (request.PropertyId.HasValue)
+        {
+            query = query.Where(m => m.CurrentApartment != null
+                                  && m.CurrentApartment.Building.PropertyId == request.PropertyId.Value);
+        }
+
+        return await query
+            .OrderBy(m => m.MeterNumber)
+            .Select(m => new MeterDto(
+                m.Id,
+                m.MeterNumber,
+                m.SerialNumber,
+                m.MaskedIdentifier,
+                m.Type,
+                m.Status,
+                m.CurrentApartmentId,
+                m.CurrentApartment != null ? m.CurrentApartment.UnitNumber : null,
+                m.QrCodes.Any(q => q.Status == QrCodeStatus.Active)))
+            .ToListAsync(ct);
+    }
+}
 
 public class GetMetersByPropertyHandler(IApplicationDbContext db)
     : IRequestHandler<GetMetersByPropertyQuery, List<MeterDto>>
