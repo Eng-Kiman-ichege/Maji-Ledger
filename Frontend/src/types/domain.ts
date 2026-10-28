@@ -5,75 +5,90 @@
 
 // ─── Enums ─────────────────────────────────────────────
 export type MeterStatus = "Active" | "Inactive" | "Suspended" | "Decommissioned";
+export type MeterType = "Prepaid" | "Postpaid" | "Shared";
 export type TenancyStatus = "Active" | "Ended" | "Suspended";
-export type PaymentStatus = "Pending" | "Confirmed" | "Failed" | "Reversed";
-export type TokenStatus = "Issued" | "Delivered" | "DeliveryFailed";
+export type PaymentAttemptStatus = "Initiated" | "Confirmed" | "Failed" | "Expired" | "Reversed";
 export type PaymentChannel = "MpesaPaybill" | "AirtelMoneyPaybill" | "ScanToPay" | "Ussd";
 export type PropertyType = "Residential" | "Commercial" | "Mixed";
+export type TokenStatus = "Issued" | "Delivered" | "DeliveryFailed";
 
-// ─── Core Entities ──────────────────────────────────────
-export interface Property {
+// ─── Property & Building ────────────────────────────────
+export interface PropertyDto {
   id: string;
   name: string;
-  description?: string;
   type: PropertyType;
-  physicalAddress?: string;
-  county?: string;
+  address?: string;
   town?: string;
-  createdAt: string;
+  county?: string;
+  postalCode?: string;
+  description?: string;
+  isActive: boolean;
+  buildingCount: number;
 }
 
-export interface Building {
+export interface BuildingDto {
   id: string;
   propertyId: string;
   name: string;
   description?: string;
   floorCount?: number;
+  apartmentCount: number;
 }
 
-export interface Apartment {
+export interface ApartmentDto {
   id: string;
   buildingId: string;
   unitNumber: string;
   floor?: string;
   description?: string;
+  isOccupied: boolean;
 }
 
-export interface Meter {
+// ─── Meters ─────────────────────────────────────────────
+export interface MeterDto {
   id: string;
   meterNumber: string;
   serialNumber?: string;
-  apartmentId?: string;
   maskedIdentifier: string;
+  type: MeterType;
   status: MeterStatus;
+  currentApartmentId?: string;
+  currentUnitNumber?: string;
+  hasActiveQrCode: boolean;
 }
 
-export interface WaterTransaction {
+export interface MeterDetailDto extends MeterDto {
+  tariffId?: string;
+  tariffName?: string;
+  activeQrPublicToken?: string;
+}
+
+// ─── Payments ───────────────────────────────────────────
+export interface PaymentAttemptDto {
   id: string;
   meterId: string;
+  meterNumber: string;
   channel: PaymentChannel;
   customerPhone: string;
-  amountPaid: number;
-  unitsCalculated: number;
-  stsToken?: string;
-  paymentProviderRef?: string;
-  paymentStatus: PaymentStatus;
-  tokenStatus: TokenStatus;
+  requestedAmount: number;
+  status: PaymentAttemptStatus;
+  providerCheckoutId?: string;
   failureReason?: string;
-  paidAt?: string;
-  createdAt: string;
+  initiatedAt: string;
+  expiresAt: string;
+  completedAt?: string;
+  waterToken?: string;
+  unitsIssued?: number;
 }
 
-// ─── Scan-to-Pay public view ─────────────────────────────
-export interface ScanToPayInfo {
-  qrToken: string;
-  propertyName: string;
-  buildingName: string;
-  unitNumber: string;
-  maskedMeterIdentifier: string;
-  paymentReference?: string;
+export interface PaymentInitiationDto {
+  attemptId: string;
+  providerCheckoutId?: string;
+  status: PaymentAttemptStatus;
+  expiresAt: string;
 }
 
+// ─── Scan-to-Pay landing ────────────────────────────────
 export interface ScanToPayLandingDto {
   meterId: string;
   maskedMeterIdentifier: string;
@@ -89,26 +104,32 @@ export interface ScanToPayLandingDto {
   tariffName?: string;
 }
 
-export interface PaymentInitiationDto {
-  attemptId: string;
-  providerCheckoutId?: string;
-  status: "Initiated" | "Confirmed" | "Failed" | "Expired" | "Reversed";
-  expiresAt: string;
-}
-
-export interface PaymentAttemptDto {
+// ─── Legacy aliases ──────────────────────────────────────
+/** @deprecated Use PropertyDto */
+export interface Property extends PropertyDto {}
+/** @deprecated Use MeterDto */
+export interface Meter extends MeterDto {}
+/** @deprecated Use PaymentAttemptDto */
+export interface WaterTransaction {
   id: string;
   meterId: string;
-  meterNumber: string;
-  channel: string;
+  channel: PaymentChannel;
   customerPhone: string;
-  requestedAmount: number;
-  status: "Initiated" | "Confirmed" | "Failed" | "Expired" | "Reversed";
-  providerCheckoutId?: string;
+  amountPaid: number;
+  unitsCalculated: number;
+  stsToken?: string;
+  paymentProviderRef?: string;
+  paymentStatus: PaymentAttemptStatus;
+  tokenStatus: TokenStatus;
   failureReason?: string;
-  initiatedAt: string;
-  expiresAt: string;
-  completedAt?: string;
-  waterToken?: string;
-  unitsIssued?: number;
+  paidAt?: string;
+  createdAt: string;
+}
+export interface ScanToPayInfo {
+  qrToken: string;
+  propertyName: string;
+  buildingName: string;
+  unitNumber: string;
+  maskedMeterIdentifier: string;
+  paymentReference?: string;
 }
