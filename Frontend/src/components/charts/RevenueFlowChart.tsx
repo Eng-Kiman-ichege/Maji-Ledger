@@ -35,7 +35,17 @@ export default function RevenueFlowChart({
   const gatewayPercent = gross > 0 ? ((paymentGatewayFee / gross) * 100).toFixed(1) : "1.2";
 
   return (
-    <div className="glass-card" style={{ padding: "24px", position: "relative" }}>
+    <div
+      className="glass-card"
+      style={{
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: 16,
+        padding: "24px",
+        position: "relative",
+        boxShadow: "0 2px 12px -2px rgba(15, 23, 42, 0.06)",
+      }}
+    >
       {/* Header */}
       <div
         style={{
@@ -60,8 +70,8 @@ export default function RevenueFlowChart({
             <h3
               style={{
                 fontSize: 16,
-                fontWeight: 700,
-                color: "var(--color-text-primary)",
+                fontWeight: 800,
+                color: "#0f172a",
                 margin: 0,
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
               }}
@@ -69,7 +79,7 @@ export default function RevenueFlowChart({
               Revenue Settlement & Platform Deductions
             </h3>
           </div>
-          <p style={{ fontSize: 13, color: "var(--color-text-muted)", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "#475569", margin: 0 }}>
             Automated waterfall: Gross collections minus platform deductions and owner disbursements
           </p>
         </div>

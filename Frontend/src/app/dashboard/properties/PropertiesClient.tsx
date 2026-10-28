@@ -84,6 +84,9 @@ function PropertyCard({
     <div
       className="glass-card"
       style={{
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: 16,
         overflow: "hidden",
         borderColor: expanded ? "#bae6fd" : "#e2e8f0",
         boxShadow: expanded ? "var(--shadow-card-hover)" : "var(--shadow-card)",

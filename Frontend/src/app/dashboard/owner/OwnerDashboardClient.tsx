@@ -517,7 +517,16 @@ export default function OwnerDashboardClient() {
       </div>
 
       {/* ── My Properties & Tenant Buildings Table ── */}
-      <div className="glass-card" style={{ padding: "24px" }}>
+      <div
+        className="glass-card"
+        style={{
+          background: "#ffffff",
+          border: "1px solid #e2e8f0",
+          borderRadius: 16,
+          padding: "24px",
+          boxShadow: "0 2px 12px -2px rgba(15, 23, 42, 0.06)",
+        }}
+      >
         <div
           style={{
             display: "flex",

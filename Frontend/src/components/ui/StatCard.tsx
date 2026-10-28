@@ -77,6 +77,10 @@ export default function StatCard({
     <div
       className="glass-card-interactive"
       style={{
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: 16,
+        boxShadow: "0 2px 12px -2px rgba(15, 23, 42, 0.05)",
         padding: "20px 22px",
         display: "flex",
         flexDirection: "column",

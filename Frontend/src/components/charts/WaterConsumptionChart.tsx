@@ -68,7 +68,16 @@ export default function WaterConsumptionChart({
   const avgUnits = (totalUnits / (data.length || 1)).toFixed(1);
 
   return (
-    <div className="glass-card" style={{ padding: "24px 24px 20px" }}>
+    <div
+      className="glass-card"
+      style={{
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: 16,
+        padding: "24px 24px 20px",
+        boxShadow: "0 2px 12px -2px rgba(15, 23, 42, 0.06)",
+      }}
+    >
       <div
         style={{
           display: "flex",
@@ -83,15 +92,15 @@ export default function WaterConsumptionChart({
           <h3
             style={{
               fontSize: 16,
-              fontWeight: 700,
-              color: "var(--color-text-primary)",
+              fontWeight: 800,
+              color: "#0f172a",
               margin: 0,
               fontFamily: "'Plus Jakarta Sans', sans-serif",
             }}
           >
             {title}
           </h3>
-          <p style={{ fontSize: 13, color: "var(--color-text-muted)", margin: "4px 0 0" }}>
+          <p style={{ fontSize: 13, color: "#475569", margin: "4px 0 0" }}>
             {subtitle}
           </p>
         </div>

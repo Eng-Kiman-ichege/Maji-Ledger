@@ -60,20 +60,30 @@ export default function ChannelDonutChart({ channelBreakdown }: ChannelDonutChar
   let accumulatedPercent = 0;
 
   return (
-    <div className="glass-card" style={{ padding: "24px", height: "100%" }}>
+    <div
+      className="glass-card"
+      style={{
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: 16,
+        padding: "24px",
+        height: "100%",
+        boxShadow: "0 2px 12px -2px rgba(15, 23, 42, 0.06)",
+      }}
+    >
       <div style={{ marginBottom: 16 }}>
         <h3
           style={{
             fontSize: 16,
-            fontWeight: 700,
-            color: "var(--color-text-primary)",
+            fontWeight: 800,
+            color: "#0f172a",
             margin: 0,
             fontFamily: "'Plus Jakarta Sans', sans-serif",
           }}
         >
           Payment Channels
         </h3>
-        <p style={{ fontSize: 13, color: "var(--color-text-muted)", margin: "4px 0 0" }}>
+        <p style={{ fontSize: 13, color: "#475569", margin: "4px 0 0" }}>
           Distribution across mobile payment gateways
         </p>
       </div>

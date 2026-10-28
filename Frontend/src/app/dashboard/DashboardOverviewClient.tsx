@@ -373,7 +373,17 @@ export default function DashboardOverviewClient() {
       </div>
 
       {/* ── Properties Portfolio Management & Filter Section ── */}
-      <div className="glass-card" style={{ padding: "24px", marginBottom: 28 }}>
+      <div
+        className="glass-card"
+        style={{
+          background: "#ffffff",
+          border: "1px solid #e2e8f0",
+          borderRadius: 16,
+          padding: "24px",
+          marginBottom: 28,
+          boxShadow: "0 2px 12px -2px rgba(15, 23, 42, 0.06)",
+        }}
+      >
         {/* Section Header */}
         <div
           style={{
@@ -594,7 +604,16 @@ export default function DashboardOverviewClient() {
       </div>
 
       {/* ── Recent Live Vending Transactions Stream ── */}
-      <div className="glass-card" style={{ padding: "24px" }}>
+      <div
+        className="glass-card"
+        style={{
+          background: "#ffffff",
+          border: "1px solid #e2e8f0",
+          borderRadius: 16,
+          padding: "24px",
+          boxShadow: "0 2px 12px -2px rgba(15, 23, 42, 0.06)",
+        }}
+      >
         <div
           style={{
             display: "flex",

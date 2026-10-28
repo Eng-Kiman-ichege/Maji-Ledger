@@ -3,14 +3,20 @@ import DashboardSidebar from "@/components/layout/DashboardSidebar";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #f0f7ff 0%, #f8fafc 280px, #f8fafc 100%)",
+      }}
+    >
       <DashboardSidebar />
       <main
         style={{
           flex: 1,
           minWidth: 0,
           overflowX: "hidden",
-          background: "#f8fafc",
+          background: "transparent",
         }}
       >
         {children}

@@ -299,7 +299,16 @@ export default function QrAnalyticsClient() {
       </div>
 
       {/* Traceability Table */}
-      <div className="glass-card" style={{ overflow: "hidden" }}>
+      <div
+        className="glass-card"
+        style={{
+          background: "#ffffff",
+          border: "1px solid #e2e8f0",
+          borderRadius: 16,
+          overflow: "hidden",
+          boxShadow: "0 2px 12px -2px rgba(15, 23, 42, 0.06)",
+        }}
+      >
         <div
           style={{
             padding: "16px 20px",
