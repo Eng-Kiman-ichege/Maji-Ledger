@@ -34,7 +34,7 @@ public class DashboardWorkflowTests
             await db.SaveChangesAsync();
             propId = prop.Id;
 
-            var bld = Building.Create(propId, "Tower A", totalFloors: 5, createdBy: "admin");
+            var bld = Building.Create(propId, "Tower A", floorCount: 5, createdBy: "admin");
             db.Buildings.Add(bld);
             await db.SaveChangesAsync();
             bldId = bld.Id;
@@ -51,32 +51,23 @@ public class DashboardWorkflowTests
 
             var config = PaymentProviderConfig.Create(
                 PaymentProviderType.MpesaPaybill,
-                "Sunrise Paybill",
                 "654321",
-                "consumerKey",
-                "consumerSecret",
-                "passkey",
+                "Sunrise Paybill",
                 EnvironmentType.Sandbox,
-                isApproved: true,
-                approvedBy: "admin");
+                propId,
+                "admin");
             db.PaymentProviderConfigs.Add(config);
             await db.SaveChangesAsync();
             configId = config.Id;
 
-            var qr = QrCodeRegistration.Create(
-                meterId,
-                configId,
-                "sunrise_qr_token",
-                "data:image/png;base64,mock",
-                "http://localhost:3000/pay/sunrise_qr_token",
-                createdBy: "admin");
+            var qr = QrCodeRegistration.Create(meterId, configId, "admin");
             db.QrCodeRegistrations.Add(qr);
             await db.SaveChangesAsync();
             qrId = qr.Id;
 
             // 1. Confirmed ScanToPay payment of 1,500 KES
             var attempt1 = PaymentAttempt.Initiate(meterId, configId, PaymentChannel.ScanToPay, "254711000111", 1500m, qrId);
-            attempt1.MarkConfirmed("WS12345678");
+            attempt1.Confirm();
             db.PaymentAttempts.Add(attempt1);
             await db.SaveChangesAsync();
 
@@ -84,23 +75,23 @@ public class DashboardWorkflowTests
             db.Payments.Add(payment1);
             await db.SaveChangesAsync();
 
-            var purchase1 = WaterPurchase.Create(payment1.Id, meterId, 1500m, unitsCalculated: 15.5m, tariffSnapshotJson: "{}");
+            var purchase1 = WaterPurchase.Create(payment1.Id, meterId, 1500m, unitsCalculated: 15.5m);
             purchase1.MarkTokenIssued();
             db.WaterPurchases.Add(purchase1);
             await db.SaveChangesAsync();
 
-            var token1 = WaterToken.Create(purchase1.Id, "1234-5678-9012-3456", 15.5m);
+            var token1 = WaterToken.Issue(purchase1.Id, "1234-5678-9012-3456");
             db.WaterTokens.Add(token1);
             await db.SaveChangesAsync();
 
-            var sms1 = SmsDeliveryRecord.Create(token1.Id, "254711000111", "Token: 1234-5678-9012-3456");
-            sms1.MarkDelivered("EXT-SMS-001");
+            var sms1 = SmsDeliveryRecord.Queue(token1.Id, "254711000111", "Token: 1234-5678-9012-3456");
+            sms1.MarkDelivered();
             db.SmsDeliveryRecords.Add(sms1);
             await db.SaveChangesAsync();
 
             // 2. Confirmed MpesaPaybill payment of 2,000 KES
             var attempt2 = PaymentAttempt.Initiate(meterId, configId, PaymentChannel.MpesaPaybill, "254722000222", 2000m);
-            attempt2.MarkConfirmed("WS87654321");
+            attempt2.Confirm();
             db.PaymentAttempts.Add(attempt2);
             await db.SaveChangesAsync();
 
@@ -108,14 +99,14 @@ public class DashboardWorkflowTests
             db.Payments.Add(payment2);
             await db.SaveChangesAsync();
 
-            var purchase2 = WaterPurchase.Create(payment2.Id, meterId, 2000m, unitsCalculated: 20.0m, tariffSnapshotJson: "{}");
+            var purchase2 = WaterPurchase.Create(payment2.Id, meterId, 2000m, unitsCalculated: 20.0m);
             purchase2.MarkTokenIssued();
             db.WaterPurchases.Add(purchase2);
             await db.SaveChangesAsync();
 
             // 3. Failed payment attempt of 5,000 KES (MUST NOT be counted in revenue!)
             var attempt3 = PaymentAttempt.Initiate(meterId, configId, PaymentChannel.ScanToPay, "254733000333", 5000m, qrId);
-            attempt3.MarkFailed("Insufficient balance");
+            attempt3.Fail("Insufficient balance");
             db.PaymentAttempts.Add(attempt3);
 
             // 4. Initiated (pending) payment attempt of 3,000 KES (MUST NOT be counted in revenue!)
@@ -190,12 +181,12 @@ public class DashboardWorkflowTests
             propBId = propB.Id;
 
             // Link ownerships
-            var poA = PropertyOwnership.Assign(ownerAId, propAId, OwnershipRole.PrimaryOwner, "admin");
-            var poB = PropertyOwnership.Assign(ownerBId, propBId, OwnershipRole.PrimaryOwner, "admin");
+            var poA = PropertyOwnership.Create(ownerAId, propAId, OwnershipRole.PrimaryOwner, "admin");
+            var poB = PropertyOwnership.Create(ownerBId, propBId, OwnershipRole.PrimaryOwner, "admin");
             db.PropertyOwnerships.AddRange(poA, poB);
 
             // Building and meter for Property A
-            var bldA = Building.Create(propAId, "Block A", createdBy: "admin");
+            var bldA = Building.Create(propAId, "Block A", floorCount: 3, createdBy: "admin");
             db.Buildings.Add(bldA);
             await db.SaveChangesAsync();
 
@@ -207,7 +198,7 @@ public class DashboardWorkflowTests
             db.Meters.Add(meterA);
 
             // Building and meter for Property B
-            var bldB = Building.Create(propBId, "Block B", createdBy: "admin");
+            var bldB = Building.Create(propBId, "Block B", floorCount: 4, createdBy: "admin");
             db.Buildings.Add(bldB);
             await db.SaveChangesAsync();
 
@@ -221,18 +212,17 @@ public class DashboardWorkflowTests
 
             var config = PaymentProviderConfig.Create(
                 PaymentProviderType.MpesaPaybill,
-                "Shared Paybill",
                 "888888",
-                "key", "secret", "passkey",
+                "Shared Paybill",
                 EnvironmentType.Sandbox,
-                isApproved: true,
-                approvedBy: "admin");
+                null,
+                "admin");
             db.PaymentProviderConfigs.Add(config);
             await db.SaveChangesAsync();
 
             // Payments for Owner A's meter: 1,000 KES
             var attemptA = PaymentAttempt.Initiate(meterA.Id, config.Id, PaymentChannel.ScanToPay, "254711000000", 1000m);
-            attemptA.MarkConfirmed("TXA111");
+            attemptA.Confirm();
             db.PaymentAttempts.Add(attemptA);
             await db.SaveChangesAsync();
 
@@ -240,13 +230,13 @@ public class DashboardWorkflowTests
             db.Payments.Add(payA);
             await db.SaveChangesAsync();
 
-            var purchaseA = WaterPurchase.Create(payA.Id, meterA.Id, 1000m, unitsCalculated: 10m, "{}");
+            var purchaseA = WaterPurchase.Create(payA.Id, meterA.Id, 1000m, unitsCalculated: 10m);
             purchaseA.MarkTokenIssued();
             db.WaterPurchases.Add(purchaseA);
 
             // Payments for Owner B's meter: 50,000 KES
             var attemptB = PaymentAttempt.Initiate(meterB.Id, config.Id, PaymentChannel.ScanToPay, "254722000000", 50000m);
-            attemptB.MarkConfirmed("TXB222");
+            attemptB.Confirm();
             db.PaymentAttempts.Add(attemptB);
             await db.SaveChangesAsync();
 
@@ -254,7 +244,7 @@ public class DashboardWorkflowTests
             db.Payments.Add(payB);
             await db.SaveChangesAsync();
 
-            var purchaseB = WaterPurchase.Create(payB.Id, meterB.Id, 50000m, unitsCalculated: 500m, "{}");
+            var purchaseB = WaterPurchase.Create(payB.Id, meterB.Id, 50000m, unitsCalculated: 500m);
             purchaseB.MarkTokenIssued();
             db.WaterPurchases.Add(purchaseB);
 
@@ -308,7 +298,7 @@ public class DashboardWorkflowTests
             db.Properties.Add(prop);
             await db.SaveChangesAsync();
 
-            var bld = Building.Create(prop.Id, "Block C", createdBy: "admin");
+            var bld = Building.Create(prop.Id, "Block C", floorCount: 2, createdBy: "admin");
             db.Buildings.Add(bld);
             await db.SaveChangesAsync();
 
@@ -322,29 +312,22 @@ public class DashboardWorkflowTests
 
             var config = PaymentProviderConfig.Create(
                 PaymentProviderType.MpesaPaybill,
-                "GreenRidge Paybill",
                 "123987",
-                "key", "secret", "pass",
+                "GreenRidge Paybill",
                 EnvironmentType.Sandbox,
-                isApproved: true,
-                approvedBy: "admin");
+                prop.Id,
+                "admin");
             db.PaymentProviderConfigs.Add(config);
             await db.SaveChangesAsync();
 
-            var qr = QrCodeRegistration.Create(
-                meter.Id,
-                config.Id,
-                "trace_qr_public_token",
-                "mock_qr_image",
-                "http://localhost:3000/pay/trace_qr_public_token",
-                createdBy: "admin");
+            var qr = QrCodeRegistration.Create(meter.Id, config.Id, "admin");
             db.QrCodeRegistrations.Add(qr);
             await db.SaveChangesAsync();
             qrRegId = qr.Id;
 
             // Attempt 1: Confirmed
             var att1 = PaymentAttempt.Initiate(meter.Id, config.Id, PaymentChannel.ScanToPay, "254700000001", 1200m, qr.Id);
-            att1.MarkConfirmed("MPE111");
+            att1.Confirm();
             db.PaymentAttempts.Add(att1);
             await db.SaveChangesAsync();
 
@@ -352,22 +335,22 @@ public class DashboardWorkflowTests
             db.Payments.Add(pay1);
             await db.SaveChangesAsync();
 
-            var pur1 = WaterPurchase.Create(pay1.Id, meter.Id, 1200m, 12m, "{}");
+            var pur1 = WaterPurchase.Create(pay1.Id, meter.Id, 1200m, unitsCalculated: 12m);
             pur1.MarkTokenIssued();
             db.WaterPurchases.Add(pur1);
             await db.SaveChangesAsync();
 
-            var tok1 = WaterToken.Create(pur1.Id, "9999-8888-7777-6666", 12m);
+            var tok1 = WaterToken.Issue(pur1.Id, "9999-8888-7777-6666");
             db.WaterTokens.Add(tok1);
             await db.SaveChangesAsync();
 
-            var sms1 = SmsDeliveryRecord.Create(tok1.Id, "254700000001", "SMS 1");
-            sms1.MarkDelivered("SMS-OK-1");
+            var sms1 = SmsDeliveryRecord.Queue(tok1.Id, "254700000001", "SMS 1");
+            sms1.MarkDelivered();
             db.SmsDeliveryRecords.Add(sms1);
 
             // Attempt 2: Failed
             var att2 = PaymentAttempt.Initiate(meter.Id, config.Id, PaymentChannel.ScanToPay, "254700000002", 2000m, qr.Id);
-            att2.MarkFailed("User cancelled");
+            att2.Fail("User cancelled");
             db.PaymentAttempts.Add(att2);
 
             await db.SaveChangesAsync();
