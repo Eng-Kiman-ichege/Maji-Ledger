@@ -311,10 +311,10 @@ export default function ScanToPayClient({ token }: Props) {
             {/* Authoritative Destination Details Box */}
             <div
               style={{
-                background: "rgba(15, 23, 42, 0.7)",
+                background: "#f8fafc",
                 borderRadius: 12,
                 padding: "16px",
-                border: "1px solid rgba(148, 163, 184, 0.12)",
+                border: "1px solid #e2e8f0",
                 marginBottom: 20,
               }}
             >
@@ -369,8 +369,8 @@ export default function ScanToPayClient({ token }: Props) {
                 display: "flex",
                 alignItems: "flex-start",
                 gap: 10,
-                background: confirmedDestination ? "rgba(6,214,160,0.08)" : "rgba(15,23,42,0.4)",
-                border: `1px solid ${confirmedDestination ? "rgba(6,214,160,0.3)" : "rgba(148,163,184,0.12)"}`,
+                background: confirmedDestination ? "#ecfdf5" : "#f8fafc",
+                border: `1px solid ${confirmedDestination ? "#a7f3d0" : "#e2e8f0"}`,
                 borderRadius: 10,
                 padding: "12px",
                 marginBottom: 20,
@@ -404,12 +404,13 @@ export default function ScanToPayClient({ token }: Props) {
                     style={{
                       padding: "8px 0",
                       borderRadius: 8,
-                      border: `1px solid ${amount === preset ? "var(--color-primary)" : "rgba(148,163,184,0.15)"}`,
-                      background: amount === preset ? "rgba(14,165,233,0.15)" : "rgba(15,23,42,0.6)",
-                      color: amount === preset ? "var(--color-primary)" : "var(--color-text-primary)",
+                      border: `1px solid ${amount === preset ? "#0284c7" : "#e2e8f0"}`,
+                      background: amount === preset ? "#f0f9ff" : "#ffffff",
+                      color: amount === preset ? "#0284c7" : "#334155",
                       fontWeight: 600,
                       fontSize: 13,
                       cursor: "pointer",
+                      boxShadow: "var(--shadow-sm)",
                     }}
                   >
                     KES {preset}
@@ -428,9 +429,9 @@ export default function ScanToPayClient({ token }: Props) {
                   width: "100%",
                   padding: "12px 14px",
                   borderRadius: 10,
-                  background: "rgba(15,23,42,0.8)",
-                  border: "1px solid rgba(148,163,184,0.2)",
-                  color: "#fff",
+                  background: "#ffffff",
+                  border: "1px solid #cbd5e1",
+                  color: "#0f172a",
                   fontSize: 15,
                   fontWeight: 600,
                   outline: "none",
@@ -467,9 +468,9 @@ export default function ScanToPayClient({ token }: Props) {
                   width: "100%",
                   padding: "12px 14px",
                   borderRadius: 10,
-                  background: "rgba(15,23,42,0.8)",
-                  border: "1px solid rgba(148,163,184,0.2)",
-                  color: "#fff",
+                  background: "#ffffff",
+                  border: "1px solid #cbd5e1",
+                  color: "#0f172a",
                   fontSize: 15,
                   outline: "none",
                 }}
@@ -539,16 +540,16 @@ export default function ScanToPayClient({ token }: Props) {
 
             <div
               style={{
-                background: "rgba(15,23,42,0.6)",
+                background: "#f8fafc",
                 padding: "14px",
                 borderRadius: 10,
-                border: "1px solid rgba(148,163,184,0.1)",
+                border: "1px solid #e2e8f0",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 10,
                 fontSize: 13,
-                color: "var(--color-text-muted)",
+                color: "#64748b",
               }}
             >
               <span
@@ -620,8 +621,8 @@ export default function ScanToPayClient({ token }: Props) {
             {/* Token Display Box */}
             <div
               style={{
-                background: "rgba(15, 23, 42, 0.9)",
-                border: "2px solid rgba(6,214,160,0.3)",
+                background: "#ecfdf5",
+                border: "2px solid #a7f3d0",
                 borderRadius: 14,
                 padding: "20px 16px",
                 marginBottom: 20,
@@ -632,7 +633,7 @@ export default function ScanToPayClient({ token }: Props) {
                   fontSize: 11,
                   fontWeight: 700,
                   textTransform: "uppercase",
-                  color: "var(--color-accent)",
+                  color: "#047857",
                   letterSpacing: "0.08em",
                   marginBottom: 8,
                 }}
@@ -645,7 +646,7 @@ export default function ScanToPayClient({ token }: Props) {
                   fontFamily: "monospace",
                   fontSize: 22,
                   fontWeight: 800,
-                  color: "#fff",
+                  color: "#065f46",
                   letterSpacing: "2px",
                   wordBreak: "break-all",
                   marginBottom: 12,
@@ -659,9 +660,9 @@ export default function ScanToPayClient({ token }: Props) {
                   type="button"
                   onClick={copyTokenToClipboard}
                   style={{
-                    background: copied ? "var(--color-accent)" : "rgba(148,163,184,0.15)",
-                    color: copied ? "#000" : "#fff",
-                    border: "none",
+                    background: copied ? "#059669" : "#ffffff",
+                    color: copied ? "#ffffff" : "#0f172a",
+                    border: "1px solid #cbd5e1",
                     borderRadius: 8,
                     padding: "8px 18px",
                     fontSize: 12,
@@ -671,6 +672,7 @@ export default function ScanToPayClient({ token }: Props) {
                     alignItems: "center",
                     gap: 6,
                     transition: "all 0.2s ease",
+                    boxShadow: "var(--shadow-sm)",
                   }}
                 >
                   {copied ? "✓ Copied to Clipboard" : "📋 Copy Token"}
@@ -681,7 +683,8 @@ export default function ScanToPayClient({ token }: Props) {
             {/* Summary Details */}
             <div
               style={{
-                background: "rgba(15, 23, 42, 0.5)",
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
                 borderRadius: 10,
                 padding: "14px",
                 fontSize: 13,

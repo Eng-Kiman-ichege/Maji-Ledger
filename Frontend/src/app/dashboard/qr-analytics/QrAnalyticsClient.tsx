@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { api } from "@/lib/api/client";
 import type { QrAnalyticsResultDto, QrTraceabilityDto, PropertyDto } from "@/types/domain";
 import StatCard from "@/components/ui/StatCard";
+import { QrCode, Search, Download, Filter, X, ExternalLink, CheckCircle2, AlertTriangle, Check } from "lucide-react";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-KE", {
@@ -28,6 +29,7 @@ export default function QrAnalyticsClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeModalQr, setActiveModalQr] = useState<QrTraceabilityDto | null>(null);
+  const [copiedToken, setCopiedToken] = useState(false);
 
   const fetchAnalytics = useCallback(async () => {
     setLoading(true);
@@ -107,11 +109,11 @@ export default function QrAnalyticsClient() {
       `"${r.unitNumber ?? ""}"`,
       `"${r.qrStatus}"`,
       `"${r.businessShortCode}"`,
-      `"${formatDate(r.registeredAt)}"`,
+      `"${r.registeredAt}"`,
       r.totalPaymentAttempts,
       r.confirmedPayments,
-      r.totalConfirmedAmount,
-      r.totalUnitsPurchased,
+      r.totalConfirmedAmount.toFixed(2),
+      r.totalUnitsPurchased.toFixed(2),
       r.tokenIssuedCount,
       r.tokenFailedCount,
       r.smsDeliveredCount,
@@ -122,23 +124,30 @@ export default function QrAnalyticsClient() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `maji_qr_analytics_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `maji_qr_traceability_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  const handleCopyLink = (token: string) => {
+    const url = `${window.location.origin}/pay/${token}`;
+    navigator.clipboard.writeText(url);
+    setCopiedToken(true);
+    setTimeout(() => setCopiedToken(false), 2000);
+  };
+
   return (
-    <div style={{ padding: "32px 32px 64px" }}>
-      {/* Page Header */}
+    <div style={{ padding: "32px 36px 80px", maxWidth: 1440, margin: "0 auto" }}>
+      {/* Header */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
+          marginBottom: 28,
           flexWrap: "wrap",
           gap: 16,
-          marginBottom: 32,
         }}
       >
         <div>
@@ -148,12 +157,13 @@ export default function QrAnalyticsClient() {
               fontSize: 28,
               fontWeight: 800,
               letterSpacing: "-0.5px",
+              color: "#0f172a",
               marginBottom: 6,
             }}
           >
             Scan-to-Pay QR Analytics
           </h1>
-          <p style={{ fontSize: 14, color: "var(--color-text-muted)", margin: 0 }}>
+          <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
             Physical meter QR deployment traceability, conversion metrics, and fulfillment analytics.
           </p>
         </div>
@@ -161,32 +171,20 @@ export default function QrAnalyticsClient() {
         <button
           onClick={handleExportCsv}
           disabled={!filteredRegistrations.length}
-          style={{
-            background: "linear-gradient(135deg, #0284c7, #2563eb)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            padding: "10px 18px",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: filteredRegistrations.length ? "pointer" : "not-allowed",
-            opacity: filteredRegistrations.length ? 1 : 0.6,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
+          className="btn-outline"
+          style={{ fontSize: 13, padding: "8px 16px" }}
         >
-          📥 Export CSV Report
+          <Download size={15} />
+          <span>Export CSV Report</span>
         </button>
       </div>
 
-      {/* Error banner */}
       {error && (
         <div
           style={{
-            background: "rgba(239,68,68,0.1)",
-            border: "1px solid rgba(239,68,68,0.2)",
-            color: "#f87171",
+            background: "#fff1f2",
+            border: "1px solid #fecdd3",
+            color: "#be123c",
             borderRadius: 10,
             padding: "12px 16px",
             fontSize: 13,
@@ -197,35 +195,37 @@ export default function QrAnalyticsClient() {
         </div>
       )}
 
-      {/* Summary KPI Cards */}
+      {/* KPI Cards */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
           gap: 16,
-          marginBottom: 32,
+          marginBottom: 28,
         }}
       >
         <StatCard
-          label="Active QR Codes"
+          label="Active QR Tags"
           value={loading ? "..." : `${analytics?.activeRegistrations ?? 0} / ${analytics?.totalRegistrations ?? 0}`}
-          icon="🏷️"
-          change={`${analytics?.disabledRegistrations ?? 0} disabled, ${analytics?.revokedRegistrations ?? 0} revoked`}
+          icon={<QrCode size={18} />}
+          change={`${analytics?.disabledRegistrations ?? 0} disabled`}
           trend="neutral"
+          colorScheme="blue"
         />
         <StatCard
           label="QR Collections"
           value={loading ? "..." : formatKes(analytics?.totalConfirmedRevenue ?? 0)}
           icon="💰"
-          change={`${analytics?.confirmedPayments ?? 0} confirmed payments`}
+          change={`${analytics?.confirmedPayments ?? 0} payments`}
           trend="up"
+          colorScheme="emerald"
         />
         <StatCard
           label="Units Dispensed"
           value={loading ? "..." : `${(analytics?.totalUnitsPurchased ?? 0).toLocaleString()} m³`}
           icon="💧"
-          change="STS Token fulfillment"
-          trend="neutral"
+          sub="STS Token fulfillment"
+          colorScheme="teal"
         />
         <StatCard
           label="QR Conversion Rate"
@@ -235,8 +235,9 @@ export default function QrAnalyticsClient() {
               : `${Math.round(((analytics.confirmedPayments ?? 0) / analytics.totalPaymentAttempts) * 100)}%`
           }
           icon="🎯"
-          change={`${analytics?.totalPaymentAttempts ?? 0} total scan attempts`}
+          change={`${analytics?.totalPaymentAttempts ?? 0} total scans`}
           trend="up"
+          colorScheme="indigo"
         />
       </div>
 
@@ -244,118 +245,74 @@ export default function QrAnalyticsClient() {
       <div
         className="glass-card"
         style={{
-          padding: 20,
-          borderRadius: 14,
+          padding: "16px 20px",
           marginBottom: 24,
           display: "flex",
           flexWrap: "wrap",
-          gap: 14,
+          gap: 12,
           alignItems: "center",
         }}
       >
-        {/* Search */}
-        <div style={{ flex: "1 1 240px" }}>
+        <div style={{ position: "relative", flex: "1 1 240px" }}>
+          <Search
+            size={16}
+            color="#94a3b8"
+            style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}
+          />
           <input
             type="text"
             placeholder="Search by meter #, token, property, unit..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: "100%",
-              background: "rgba(30,41,59,0.8)",
-              border: "1px solid rgba(148,163,184,0.18)",
-              color: "#fff",
-              borderRadius: 8,
-              padding: "9px 14px",
-              fontSize: 13,
-            }}
+            className="input-base"
+            style={{ paddingLeft: 36 }}
           />
         </div>
 
         {/* Property Filter */}
-        <div>
-          <select
-            value={selectedPropertyId}
-            onChange={(e) => setSelectedPropertyId(e.target.value)}
-            style={{
-              background: "rgba(30,41,59,0.8)",
-              border: "1px solid rgba(148,163,184,0.18)",
-              color: "#fff",
-              borderRadius: 8,
-              padding: "9px 12px",
-              fontSize: 13,
-            }}
-          >
-            <option value="">All Properties</option>
-            {properties.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={selectedPropertyId}
+          onChange={(e) => setSelectedPropertyId(e.target.value)}
+          className="input-base"
+          style={{ width: "auto" }}
+        >
+          <option value="">All Properties</option>
+          {properties.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
 
         {/* Status Filter */}
-        <div>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            style={{
-              background: "rgba(30,41,59,0.8)",
-              border: "1px solid rgba(148,163,184,0.18)",
-              color: "#fff",
-              borderRadius: 8,
-              padding: "9px 12px",
-              fontSize: 13,
-            }}
-          >
-            <option value="">All QR Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Disabled">Disabled</option>
-            <option value="Revoked">Revoked</option>
-          </select>
-        </div>
-
-        {/* Date Filters */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 12, color: "var(--color-text-muted)" }}>From:</span>
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            style={{
-              background: "rgba(30,41,59,0.8)",
-              border: "1px solid rgba(148,163,184,0.18)",
-              color: "#fff",
-              borderRadius: 8,
-              padding: "8px 10px",
-              fontSize: 12,
-            }}
-          />
-          <span style={{ fontSize: 12, color: "var(--color-text-muted)" }}>To:</span>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            style={{
-              background: "rgba(30,41,59,0.8)",
-              border: "1px solid rgba(148,163,184,0.18)",
-              color: "#fff",
-              borderRadius: 8,
-              padding: "8px 10px",
-              fontSize: 12,
-            }}
-          />
-        </div>
+        <select
+          value={selectedStatus}
+          onChange={(e) => setSelectedStatus(e.target.value)}
+          className="input-base"
+          style={{ width: "auto" }}
+        >
+          <option value="">All QR Statuses</option>
+          <option value="Active">Active Only</option>
+          <option value="Disabled">Disabled</option>
+          <option value="Revoked">Revoked</option>
+        </select>
       </div>
 
       {/* Traceability Table */}
-      <div className="glass-card" style={{ padding: 24, borderRadius: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 18, fontWeight: 700, margin: 0 }}>
+      <div className="glass-card" style={{ overflow: "hidden" }}>
+        <div
+          style={{
+            padding: "16px 20px",
+            borderBottom: "1px solid #e2e8f0",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", margin: 0 }}>
             Registered QR Codes & Traceability
           </h2>
-          <span style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
+          <span style={{ fontSize: 12, color: "#64748b" }}>
             Showing {filteredRegistrations.length} of {analytics?.totalRegistrations ?? 0} registrations
           </span>
         </div>
@@ -364,15 +321,14 @@ export default function QrAnalyticsClient() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid rgba(148,163,184,0.1)", textAlign: "left" }}>
-                  <th style={{ padding: "10px 12px", color: "var(--color-text-muted)" }}>Public Token</th>
-                  <th style={{ padding: "10px 12px", color: "var(--color-text-muted)" }}>Meter & Location</th>
-                  <th style={{ padding: "10px 12px", color: "var(--color-text-muted)" }}>Destination</th>
-                  <th style={{ padding: "10px 12px", color: "var(--color-text-muted)" }}>Status</th>
-                  <th style={{ padding: "10px 12px", color: "var(--color-text-muted)" }}>Activity</th>
-                  <th style={{ padding: "10px 12px", color: "var(--color-text-muted)" }}>Collections</th>
-                  <th style={{ padding: "10px 12px", color: "var(--color-text-muted)" }}>Fulfillment</th>
-                  <th style={{ padding: "10px 12px", color: "var(--color-text-muted)" }}>Action</th>
+                <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc", textAlign: "left" }}>
+                  <th style={{ padding: "12px 14px", color: "#475569", fontWeight: 700 }}>Public Token</th>
+                  <th style={{ padding: "12px 14px", color: "#475569", fontWeight: 700 }}>Meter & Location</th>
+                  <th style={{ padding: "12px 14px", color: "#475569", fontWeight: 700 }}>Destination</th>
+                  <th style={{ padding: "12px 14px", color: "#475569", fontWeight: 700 }}>Status</th>
+                  <th style={{ padding: "12px 14px", color: "#475569", fontWeight: 700 }}>Conversion</th>
+                  <th style={{ padding: "12px 14px", color: "#475569", fontWeight: 700 }}>Collections</th>
+                  <th style={{ padding: "12px 14px", color: "#475569", fontWeight: 700 }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -384,97 +340,70 @@ export default function QrAnalyticsClient() {
                   return (
                     <tr
                       key={r.qrRegistrationId}
-                      style={{ borderBottom: "1px solid rgba(148,163,184,0.06)", transition: "background 0.15s ease" }}
+                      style={{ borderBottom: "1px solid #f1f5f9" }}
+                      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "#f8fafc")}
+                      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
                     >
-                      <td style={{ padding: "12px", fontFamily: "monospace", fontSize: 12 }}>
-                        <span style={{ color: "#38bdf8", fontWeight: 600 }}>{r.publicToken}</span>
-                        <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                          {formatDate(r.registeredAt)}
+                      <td style={{ padding: "12px 14px", fontFamily: "monospace", fontSize: 12 }}>
+                        <span style={{ color: "#0284c7", fontWeight: 700 }}>{r.publicToken}</span>
+                        <div style={{ fontSize: 11, color: "#64748b" }}>{formatDate(r.registeredAt)}</div>
+                      </td>
+
+                      <td style={{ padding: "12px 14px" }}>
+                        <div style={{ fontWeight: 700, color: "#0f172a" }}>{r.meterNumber}</div>
+                        <div style={{ fontSize: 11, color: "#64748b" }}>
+                          {r.propertyName} {r.buildingName ? `· ${r.buildingName}` : ""}{" "}
+                          {r.unitNumber ? `(#${r.unitNumber})` : ""}
                         </div>
                       </td>
 
-                      <td style={{ padding: "12px" }}>
-                        <div style={{ fontWeight: 600 }}>{r.meterNumber}</div>
-                        <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                          {r.propertyName} · {r.buildingName ?? ""} {r.unitNumber ? `(#${r.unitNumber})` : ""}
-                        </div>
+                      <td style={{ padding: "12px 14px" }}>
+                        <div style={{ fontWeight: 600, color: "#0f172a" }}>{r.businessShortCode}</div>
+                        <div style={{ fontSize: 11, color: "#64748b" }}>{r.providerDisplayName}</div>
                       </td>
 
-                      <td style={{ padding: "12px" }}>
-                        <div style={{ fontWeight: 600 }}>{r.businessShortCode}</div>
-                        <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>{r.providerDisplayName}</div>
-                      </td>
-
-                      <td style={{ padding: "12px" }}>
+                      <td style={{ padding: "12px 14px" }}>
                         <span
                           style={{
                             padding: "3px 8px",
-                            borderRadius: 6,
+                            borderRadius: 9999,
                             fontSize: 11,
                             fontWeight: 700,
-                            background: isAct
-                              ? "rgba(74,222,128,0.15)"
-                              : isDis
-                              ? "rgba(251,191,36,0.15)"
-                              : "rgba(248,113,113,0.15)",
-                            color: isAct ? "#4ade80" : isDis ? "#fbbf24" : "#f87171",
+                            background: isAct ? "#ecfdf5" : isDis ? "#fffbeb" : "#fff1f2",
+                            color: isAct ? "#059669" : isDis ? "#d97706" : "#e11d48",
+                            border: `1px solid ${isAct ? "#a7f3d0" : isDis ? "#fde68a" : "#fecdd3"}`,
                           }}
                         >
                           {isAct ? "ACTIVE" : isDis ? "DISABLED" : "REVOKED"}
                         </span>
                       </td>
 
-                      <td style={{ padding: "12px" }}>
+                      <td style={{ padding: "12px 14px" }}>
                         <div>
-                          <span style={{ color: "#4ade80", fontWeight: 700 }}>{r.confirmedPayments}</span>
-                          <span style={{ color: "var(--color-text-muted)", fontSize: 11 }}>
-                            {" "}
-                            / {r.totalPaymentAttempts} attempts
-                          </span>
+                          <span style={{ color: "#059669", fontWeight: 700 }}>{r.confirmedPayments}</span>
+                          <span style={{ color: "#64748b", fontSize: 11 }}> / {r.totalPaymentAttempts} scans</span>
                         </div>
-                        <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
+                        <div style={{ fontSize: 11, color: "#64748b" }}>
                           {r.totalPaymentAttempts > 0
                             ? `${Math.round((r.confirmedPayments / r.totalPaymentAttempts) * 100)}% conversion`
                             : "No scans"}
                         </div>
                       </td>
 
-                      <td style={{ padding: "12px" }}>
-                        <div style={{ fontWeight: 700, color: "#4ade80" }}>{formatKes(r.totalConfirmedAmount)}</div>
-                        <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
+                      <td style={{ padding: "12px 14px" }}>
+                        <div style={{ fontWeight: 700, color: "#0f172a" }}>
+                          {formatKes(r.totalConfirmedAmount)}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#0284c7" }}>
                           {r.totalUnitsPurchased.toLocaleString()} m³
                         </div>
                       </td>
 
-                      <td style={{ padding: "12px" }}>
-                        <div style={{ fontSize: 12 }}>
-                          STS:{" "}
-                          <span style={{ color: "#4ade80", fontWeight: 600 }}>{r.tokenIssuedCount}</span>
-                          {r.tokenFailedCount > 0 && (
-                            <span style={{ color: "#f87171", marginLeft: 4 }}>({r.tokenFailedCount} fail)</span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                          SMS: {r.smsDeliveredCount} delivered
-                          {r.smsFailedCount > 0 && (
-                            <span style={{ color: "#f87171", marginLeft: 4 }}>({r.smsFailedCount} fail)</span>
-                          )}
-                        </div>
-                      </td>
-
-                      <td style={{ padding: "12px" }}>
+                      <td style={{ padding: "12px 14px" }}>
                         <button
                           onClick={() => setActiveModalQr(r)}
-                          style={{
-                            background: "rgba(56,189,248,0.1)",
-                            color: "#38bdf8",
-                            border: "1px solid rgba(56,189,248,0.3)",
-                            borderRadius: 6,
-                            padding: "6px 12px",
-                            fontSize: 12,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                          }}
+                          className="btn-outline"
+                          style={{ padding: "5px 10px", fontSize: 11 }}
                         >
                           View Details
                         </button>
@@ -486,13 +415,13 @@ export default function QrAnalyticsClient() {
             </table>
           </div>
         ) : (
-          <div style={{ textAlign: "center", padding: "40px 0", color: "var(--color-text-muted)" }}>
+          <div style={{ textAlign: "center", padding: "48px 0", color: "#64748b" }}>
             {loading ? "Loading QR analytics data..." : "No QR code registrations matched your filters."}
           </div>
         )}
       </div>
 
-      {/* Drill-down Detail Modal */}
+      {/* Drill-down Detail Modal in Light Mode */}
       {activeModalQr && (
         <div
           style={{
@@ -501,7 +430,7 @@ export default function QrAnalyticsClient() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: "rgba(0,0,0,0.75)",
+            background: "rgba(15, 23, 42, 0.4)",
             backdropFilter: "blur(4px)",
             display: "flex",
             alignItems: "center",
@@ -514,112 +443,86 @@ export default function QrAnalyticsClient() {
           <div
             className="glass-card"
             style={{
-              background: "#0f172a",
-              border: "1px solid rgba(148,163,184,0.2)",
-              borderRadius: 20,
               maxWidth: 580,
               width: "100%",
-              padding: 28,
+              padding: "28px",
+              boxShadow: "var(--shadow-dropdown)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 20,
+                borderBottom: "1px solid #e2e8f0",
+                paddingBottom: 14,
+              }}
+            >
               <div>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>QR Registration Traceability</h3>
-                <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--color-text-muted)" }}>
-                  Token: <code style={{ color: "#38bdf8" }}>{activeModalQr.publicToken}</code>
-                </p>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: 0 }}>
+                  QR Code Traceability Details
+                </h2>
+                <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                  Token: <span style={{ fontFamily: "monospace", color: "#0284c7" }}>{activeModalQr.publicToken}</span>
+                </div>
               </div>
               <button
                 onClick={() => setActiveModalQr(null)}
                 style={{
-                  background: "transparent",
+                  background: "#f1f5f9",
                   border: "none",
-                  color: "var(--color-text-muted)",
-                  fontSize: 20,
+                  borderRadius: 8,
+                  width: 30,
+                  height: 30,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   cursor: "pointer",
                 }}
               >
-                ✕
+                <X size={16} color="#64748b" />
               </button>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div style={{ background: "rgba(30,41,59,0.5)", padding: 14, borderRadius: 10 }}>
-                <div style={{ fontSize: 11, color: "var(--color-text-muted)", textTransform: "uppercase" }}>Location Hierarchy</div>
-                <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>
-                  {activeModalQr.propertyName} → {activeModalQr.buildingName ?? "Building"} → Unit {activeModalQr.unitNumber ?? "—"}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
+              <div style={{ background: "#f8fafc", padding: "12px", borderRadius: 8, border: "1px solid #e2e8f0" }}>
+                <div style={{ fontSize: 11, color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>
+                  Property & Unit
                 </div>
-                <div style={{ fontSize: 12, color: "var(--color-text-muted)", marginTop: 2 }}>
-                  Meter Number: <strong>{activeModalQr.meterNumber}</strong> ({activeModalQr.maskedMeterIdentifier})
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginTop: 3 }}>
+                  {activeModalQr.propertyName}
                 </div>
-              </div>
-
-              <div style={{ background: "rgba(30,41,59,0.5)", padding: 14, borderRadius: 10 }}>
-                <div style={{ fontSize: 11, color: "var(--color-text-muted)", textTransform: "uppercase" }}>Payment Configuration</div>
-                <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>
-                  {activeModalQr.providerDisplayName} (ShortCode: {activeModalQr.businessShortCode})
-                </div>
-                <div style={{ fontSize: 12, color: "var(--color-text-muted)", marginTop: 2 }}>
-                  Status: <strong>{String(activeModalQr.qrStatus)}</strong> · Registered: {formatDate(activeModalQr.registeredAt)}
+                <div style={{ fontSize: 12, color: "#64748b" }}>
+                  {activeModalQr.buildingName} {activeModalQr.unitNumber ? `(Unit ${activeModalQr.unitNumber})` : ""}
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div style={{ background: "rgba(30,41,59,0.5)", padding: 14, borderRadius: 10 }}>
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Total Scans / Attempts</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>{activeModalQr.totalPaymentAttempts}</div>
-                  <div style={{ fontSize: 11, color: "#4ade80" }}>{activeModalQr.confirmedPayments} confirmed</div>
+              <div style={{ background: "#f8fafc", padding: "12px", borderRadius: 8, border: "1px solid #e2e8f0" }}>
+                <div style={{ fontSize: 11, color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>
+                  Smart Meter
                 </div>
-
-                <div style={{ background: "rgba(30,41,59,0.5)", padding: 14, borderRadius: 10 }}>
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Gross Collections</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: "#4ade80", marginTop: 4 }}>
-                    {formatKes(activeModalQr.totalConfirmedAmount)}
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                    {activeModalQr.totalUnitsPurchased.toLocaleString()} m³ dispensed
-                  </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginTop: 3 }}>
+                  {activeModalQr.meterNumber}
                 </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div style={{ background: "rgba(30,41,59,0.5)", padding: 14, borderRadius: 10 }}>
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>STS Token Delivery</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#4ade80", marginTop: 4 }}>
-                    {activeModalQr.tokenIssuedCount} Issued
-                  </div>
-                  <div style={{ fontSize: 11, color: activeModalQr.tokenFailedCount ? "#f87171" : "var(--color-text-muted)" }}>
-                    {activeModalQr.tokenFailedCount} Failed
-                  </div>
-                </div>
-
-                <div style={{ background: "rgba(30,41,59,0.5)", padding: 14, borderRadius: 10 }}>
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Customer SMS Notification</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#38bdf8", marginTop: 4 }}>
-                    {activeModalQr.smsDeliveredCount} Delivered
-                  </div>
-                  <div style={{ fontSize: 11, color: activeModalQr.smsFailedCount ? "#f87171" : "var(--color-text-muted)" }}>
-                    {activeModalQr.smsFailedCount} Failed
-                  </div>
+                <div style={{ fontSize: 12, color: "#64748b" }}>
+                  Masked: {activeModalQr.maskedMeterIdentifier}
                 </div>
               </div>
             </div>
 
-            <div style={{ marginTop: 24, textAlign: "right" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
               <button
-                onClick={() => setActiveModalQr(null)}
-                style={{
-                  background: "rgba(148,163,184,0.15)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "8px 18px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
+                onClick={() => handleCopyLink(activeModalQr.publicToken)}
+                className="btn-outline"
+                style={{ fontSize: 12 }}
               >
+                {copiedToken ? <Check size={14} color="#059669" /> : <ExternalLink size={14} />}
+                <span>{copiedToken ? "Copied Payment URL!" : "Copy Scan-to-Pay Link"}</span>
+              </button>
+
+              <button onClick={() => setActiveModalQr(null)} className="btn-secondary" style={{ fontSize: 12 }}>
                 Close
               </button>
             </div>

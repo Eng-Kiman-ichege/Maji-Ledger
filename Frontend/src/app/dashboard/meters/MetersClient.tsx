@@ -3,27 +3,28 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type { MeterDto, MeterStatus } from "@/types/domain";
+import { Gauge, Search, CheckCircle2, QrCode } from "lucide-react";
 
 const STATUS_STYLE: Record<MeterStatus, { color: string; bg: string; border: string }> = {
   Active: {
-    color: "#4ade80",
-    bg: "rgba(74,222,128,0.1)",
-    border: "rgba(74,222,128,0.2)",
+    color: "#059669",
+    bg: "#ecfdf5",
+    border: "#a7f3d0",
   },
   Inactive: {
-    color: "#94a3b8",
-    bg: "rgba(148,163,184,0.08)",
-    border: "rgba(148,163,184,0.15)",
+    color: "#64748b",
+    bg: "#f1f5f9",
+    border: "#cbd5e1",
   },
   Suspended: {
-    color: "#fb923c",
-    bg: "rgba(251,146,60,0.1)",
-    border: "rgba(251,146,60,0.2)",
+    color: "#d97706",
+    bg: "#fffbeb",
+    border: "#fde68a",
   },
   Decommissioned: {
-    color: "#f87171",
-    bg: "rgba(248,113,113,0.1)",
-    border: "rgba(248,113,113,0.2)",
+    color: "#e11d48",
+    bg: "#fff1f2",
+    border: "#fecdd3",
   },
 };
 
@@ -34,9 +35,9 @@ function MeterStatusBadge({ status }: { status: MeterStatus }) {
       style={{
         display: "inline-block",
         padding: "3px 10px",
-        borderRadius: 100,
-        fontSize: 11,
-        fontWeight: 700,
+        borderRadius: 9999,
+        fontSize: 12,
+        fontWeight: 600,
         color: s.color,
         background: s.bg,
         border: `1px solid ${s.border}`,
@@ -61,7 +62,9 @@ export default function MetersClient() {
       .then((data) => mounted && setMeters(data))
       .catch((e) => mounted && setError(e instanceof Error ? e.message : "Failed to load meters."))
       .finally(() => mounted && setLoading(false));
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const filtered = meters.filter((m) => {
@@ -79,31 +82,32 @@ export default function MetersClient() {
   }, {});
 
   return (
-    <div style={{ padding: "32px 32px 64px" }}>
+    <div style={{ padding: "32px 36px 80px", maxWidth: 1440, margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ marginBottom: 32 }}>
+      <div style={{ marginBottom: 28 }}>
         <h1
           style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
             fontSize: 28,
             fontWeight: 800,
             letterSpacing: "-0.5px",
+            color: "#0f172a",
             marginBottom: 6,
           }}
         >
-          Water Meters
+          Smart Water Meters
         </h1>
-        <p style={{ fontSize: 14, color: "var(--color-text-muted)", margin: 0 }}>
-          All registered prepaid water meters across your portfolio.
+        <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
+          Hardware telemetry, STS prepaid association, and QR scan-to-pay provisioning.
         </p>
       </div>
 
       {error && (
         <div
           style={{
-            background: "rgba(239,68,68,0.1)",
-            border: "1px solid rgba(239,68,68,0.2)",
-            color: "#f87171",
+            background: "#fff1f2",
+            border: "1px solid #fecdd3",
+            color: "#be123c",
             borderRadius: 10,
             padding: "12px 16px",
             fontSize: 13,
@@ -129,24 +133,15 @@ export default function MetersClient() {
               onClick={() => setFilterStatus(f.key)}
               style={{
                 padding: "6px 14px",
-                borderRadius: 100,
+                borderRadius: 9999,
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: "pointer",
-                border: `1px solid ${
-                  filterStatus === f.key
-                    ? "rgba(14,165,233,0.4)"
-                    : "rgba(148,163,184,0.12)"
-                }`,
-                background:
-                  filterStatus === f.key
-                    ? "rgba(14,165,233,0.12)"
-                    : "rgba(30,41,59,0.5)",
-                color:
-                  filterStatus === f.key
-                    ? "var(--color-primary)"
-                    : "var(--color-text-muted)",
+                border: `1px solid ${filterStatus === f.key ? "#0284c7" : "#e2e8f0"}`,
+                background: filterStatus === f.key ? "#f0f9ff" : "#ffffff",
+                color: filterStatus === f.key ? "#0284c7" : "#64748b",
                 transition: "all 0.15s",
+                boxShadow: "var(--shadow-sm)",
               }}
             >
               {f.label}
@@ -156,48 +151,31 @@ export default function MetersClient() {
       )}
 
       {/* Search */}
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ position: "relative", maxWidth: 440, marginBottom: 20 }}>
+        <Search
+          size={16}
+          color="#94a3b8"
+          style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}
+        />
         <input
           type="text"
           placeholder="Search by meter number, serial, or unit..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{
-            width: "100%",
-            maxWidth: 480,
-            padding: "11px 16px",
-            borderRadius: 10,
-            background: "rgba(30,41,59,0.7)",
-            border: "1px solid rgba(148,163,184,0.15)",
-            color: "var(--color-text-primary)",
-            fontSize: 14,
-            outline: "none",
-          }}
+          className="input-base"
+          style={{ paddingLeft: 36 }}
         />
       </div>
 
       {/* Table */}
       {loading ? (
-        <div className="glass-card" style={{ overflow: "hidden" }}>
-          <div style={{ padding: "40px", textAlign: "center", color: "var(--color-text-muted)" }}>
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                border: "2px solid rgba(14,165,233,0.2)",
-                borderTopColor: "var(--color-primary)",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-                margin: "0 auto 12px",
-              }}
-            />
-            Loading meters...
-          </div>
+        <div className="glass-card" style={{ padding: "48px", textAlign: "center", color: "#64748b" }}>
+          Loading meters telemetry...
         </div>
       ) : filtered.length === 0 ? (
-        <div className="glass-card" style={{ padding: "40px", textAlign: "center" }}>
+        <div className="glass-card" style={{ padding: "48px", textAlign: "center" }}>
           <div style={{ fontSize: 36, marginBottom: 10 }}>💧</div>
-          <p style={{ color: "var(--color-text-muted)", fontSize: 14, margin: 0 }}>
+          <p style={{ color: "#334155", fontWeight: 700, fontSize: 14, margin: 0 }}>
             {search || filterStatus !== "all"
               ? "No meters match the current filters."
               : "No meters registered yet."}
@@ -208,30 +186,18 @@ export default function MetersClient() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
-                <tr
-                  style={{
-                    borderBottom: "1px solid rgba(148,163,184,0.1)",
-                    background: "rgba(15,23,42,0.5)",
-                  }}
-                >
-                  {[
-                    "Meter Number",
-                    "Serial",
-                    "Type",
-                    "Status",
-                    "Assigned Unit",
-                    "QR Code",
-                  ].map((h) => (
+                <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
+                  {["Meter Number", "Serial", "Type", "Status", "Assigned Unit", "QR Code"].map((h) => (
                     <th
                       key={h}
                       style={{
-                        padding: "10px 16px",
+                        padding: "12px 16px",
                         textAlign: "left",
                         fontWeight: 700,
-                        fontSize: 11,
-                        color: "var(--color-text-muted)",
-                        letterSpacing: "0.04em",
+                        fontSize: 12,
+                        color: "#475569",
                         textTransform: "uppercase",
+                        letterSpacing: "0.03em",
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -241,22 +207,12 @@ export default function MetersClient() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((m, idx) => (
+                {filtered.map((m) => (
                   <tr
                     key={m.id}
-                    style={{
-                      borderBottom:
-                        idx < filtered.length - 1
-                          ? "1px solid rgba(148,163,184,0.06)"
-                          : "none",
-                    }}
-                    onMouseEnter={(e) =>
-                      ((e.currentTarget as HTMLElement).style.background =
-                        "rgba(14,165,233,0.04)")
-                    }
-                    onMouseLeave={(e) =>
-                      ((e.currentTarget as HTMLElement).style.background = "transparent")
-                    }
+                    style={{ borderBottom: "1px solid #f1f5f9" }}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "#f8fafc")}
+                    onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
                   >
                     <td
                       style={{
@@ -264,28 +220,28 @@ export default function MetersClient() {
                         fontFamily: "monospace",
                         fontSize: 13,
                         fontWeight: 700,
-                        color: "var(--color-primary)",
+                        color: "#0284c7",
                       }}
                     >
                       {m.maskedIdentifier}
-                      <div style={{ fontSize: 10, fontFamily: "monospace", color: "var(--color-text-dim)", marginTop: 1 }}>
+                      <div style={{ fontSize: 11, fontFamily: "monospace", color: "#94a3b8", marginTop: 2 }}>
                         {m.meterNumber}
                       </div>
                     </td>
-                    <td style={{ padding: "12px 16px", color: "var(--color-text-muted)", fontFamily: "monospace", fontSize: 12 }}>
+                    <td style={{ padding: "12px 16px", color: "#64748b", fontFamily: "monospace", fontSize: 12 }}>
                       {m.serialNumber ?? "—"}
                     </td>
-                    <td style={{ padding: "12px 16px", color: "var(--color-text-muted)" }}>
+                    <td style={{ padding: "12px 16px", color: "#334155", fontWeight: 500 }}>
                       {m.type}
                     </td>
                     <td style={{ padding: "12px 16px" }}>
                       <MeterStatusBadge status={m.status} />
                     </td>
-                    <td style={{ padding: "12px 16px", color: "var(--color-text-muted)" }}>
-                      {m.currentUnitNumber ?? (
-                        <span style={{ color: "var(--color-text-dim)", fontStyle: "italic" }}>
-                          Unassigned
-                        </span>
+                    <td style={{ padding: "12px 16px", color: "#334155" }}>
+                      {m.currentUnitNumber ? (
+                        <span style={{ fontWeight: 600 }}>Unit {m.currentUnitNumber}</span>
+                      ) : (
+                        <span style={{ color: "#94a3b8", fontStyle: "italic" }}>Unassigned</span>
                       )}
                     </td>
                     <td style={{ padding: "12px 16px" }}>
@@ -296,21 +252,15 @@ export default function MetersClient() {
                             alignItems: "center",
                             gap: 5,
                             fontSize: 12,
-                            color: "var(--color-accent)",
+                            color: "#059669",
                             fontWeight: 600,
                           }}
                         >
-                          ✓ Active
+                          <CheckCircle2 size={13} />
+                          Active
                         </span>
                       ) : (
-                        <span
-                          style={{
-                            fontSize: 12,
-                            color: "var(--color-text-dim)",
-                          }}
-                        >
-                          —
-                        </span>
+                        <span style={{ fontSize: 12, color: "#94a3b8" }}>—</span>
                       )}
                     </td>
                   </tr>
@@ -322,22 +272,16 @@ export default function MetersClient() {
           <div
             style={{
               padding: "12px 16px",
-              borderTop: "1px solid rgba(148,163,184,0.08)",
+              borderTop: "1px solid #f1f5f9",
               fontSize: 12,
-              color: "var(--color-text-dim)",
+              color: "#64748b",
+              background: "#f8fafc",
             }}
           >
             Showing {filtered.length} of {meters.length} meter{meters.length !== 1 ? "s" : ""}
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

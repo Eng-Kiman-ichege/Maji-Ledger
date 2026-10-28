@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { PaymentAttemptDto, PaymentAttemptStatus } from "@/types/domain";
+import type { PaymentAttemptDto } from "@/types/domain";
 import { StatusBadge, ChannelBadge } from "@/components/ui/Badges";
+import { Receipt, Search, ChevronDown, ChevronUp, DollarSign } from "lucide-react";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("en-KE", {
@@ -29,7 +30,7 @@ function ExpandedRow({ p }: { p: PaymentAttemptDto }) {
         colSpan={7}
         style={{
           padding: "0 16px 16px",
-          background: "rgba(15,23,42,0.5)",
+          background: "#f8fafc",
         }}
       >
         <div
@@ -37,8 +38,10 @@ function ExpandedRow({ p }: { p: PaymentAttemptDto }) {
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
             gap: 12,
-            padding: "14px 0",
-            borderTop: "1px solid rgba(148,163,184,0.06)",
+            padding: "16px",
+            background: "#ffffff",
+            borderRadius: 10,
+            border: "1px solid #e2e8f0",
           }}
         >
           {[
@@ -49,9 +52,7 @@ function ExpandedRow({ p }: { p: PaymentAttemptDto }) {
             { label: "Units Issued", value: p.unitsIssued != null ? `${p.unitsIssued} m³` : "—" },
             {
               label: "STS Token",
-              value: p.waterToken
-                ? p.waterToken
-                : "—",
+              value: p.waterToken ? p.waterToken : "—",
               mono: true,
             },
             ...(p.failureReason ? [{ label: "Failure Reason", value: p.failureReason }] : []),
@@ -61,7 +62,7 @@ function ExpandedRow({ p }: { p: PaymentAttemptDto }) {
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
-                  color: "var(--color-text-dim)",
+                  color: "#64748b",
                   letterSpacing: "0.05em",
                   textTransform: "uppercase",
                   marginBottom: 3,
@@ -72,7 +73,7 @@ function ExpandedRow({ p }: { p: PaymentAttemptDto }) {
               <div
                 style={{
                   fontSize: 13,
-                  color: mono ? "var(--color-accent)" : "var(--color-text-primary)",
+                  color: mono ? "#059669" : "#0f172a",
                   fontFamily: mono ? "monospace" : undefined,
                   fontWeight: mono ? 700 : 500,
                   wordBreak: "break-all",
@@ -108,7 +109,9 @@ export default function PaymentsClient() {
         mounted && setError(e instanceof Error ? e.message : "Failed to load transactions.")
       )
       .finally(() => mounted && setLoading(false));
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [page]);
 
   const filtered = payments.filter((p) => {
@@ -131,24 +134,25 @@ export default function PaymentsClient() {
     .reduce((sum, p) => sum + p.requestedAmount, 0);
 
   return (
-    <div style={{ padding: "32px 32px 64px" }}>
+    <div style={{ padding: "32px 36px 80px", maxWidth: 1440, margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ marginBottom: 32 }}>
+      <div style={{ marginBottom: 28 }}>
         <h1
           style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
             fontSize: 28,
             fontWeight: 800,
             letterSpacing: "-0.5px",
+            color: "#0f172a",
             marginBottom: 6,
           }}
         >
-          Transactions
+          Transaction Ledger & STS Tokens
         </h1>
-        <p style={{ fontSize: 14, color: "var(--color-text-muted)", margin: 0 }}>
-          All payment attempts and STS token records.{" "}
+        <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
+          Real-time mobile payment gateway settlements and encrypted 20-digit token dispatches.{" "}
           {!loading && payments.length > 0 && (
-            <span style={{ color: "var(--color-accent)", fontWeight: 600 }}>
+            <span style={{ color: "#059669", fontWeight: 700, marginLeft: 6 }}>
               Total confirmed revenue: {formatKes(totalRevenue)}
             </span>
           )}
@@ -158,9 +162,9 @@ export default function PaymentsClient() {
       {error && (
         <div
           style={{
-            background: "rgba(239,68,68,0.1)",
-            border: "1px solid rgba(239,68,68,0.2)",
-            color: "#f87171",
+            background: "#fff1f2",
+            border: "1px solid #fecdd3",
+            color: "#be123c",
             borderRadius: 10,
             padding: "12px 16px",
             fontSize: 13,
@@ -174,38 +178,27 @@ export default function PaymentsClient() {
       {/* Status filter pills */}
       {!loading && (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-          {(
-            [
-              ["all", `All (${payments.length})`],
-              ["Confirmed", `Confirmed (${statusCounts.Confirmed ?? 0})`],
-              ["Initiated", `Initiated (${statusCounts.Initiated ?? 0})`],
-              ["Failed", `Failed (${statusCounts.Failed ?? 0})`],
-              ["Expired", `Expired (${statusCounts.Expired ?? 0})`],
-            ] as [string, string][]
-          ).map(([key, label]) => (
+          {[
+            ["all", `All (${payments.length})`],
+            ["Confirmed", `Confirmed (${statusCounts.Confirmed ?? 0})`],
+            ["Initiated", `Initiated (${statusCounts.Initiated ?? 0})`],
+            ["Failed", `Failed (${statusCounts.Failed ?? 0})`],
+            ["Expired", `Expired (${statusCounts.Expired ?? 0})`],
+          ].map(([key, label]) => (
             <button
               key={key}
               onClick={() => setFilterStatus(key)}
               style={{
                 padding: "6px 14px",
-                borderRadius: 100,
+                borderRadius: 9999,
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: "pointer",
-                border: `1px solid ${
-                  filterStatus === key
-                    ? "rgba(14,165,233,0.4)"
-                    : "rgba(148,163,184,0.12)"
-                }`,
-                background:
-                  filterStatus === key
-                    ? "rgba(14,165,233,0.12)"
-                    : "rgba(30,41,59,0.5)",
-                color:
-                  filterStatus === key
-                    ? "var(--color-primary)"
-                    : "var(--color-text-muted)",
+                border: `1px solid ${filterStatus === key ? "#0284c7" : "#e2e8f0"}`,
+                background: filterStatus === key ? "#f0f9ff" : "#ffffff",
+                color: filterStatus === key ? "#0284c7" : "#64748b",
                 transition: "all 0.15s",
+                boxShadow: "var(--shadow-sm)",
               }}
             >
               {label}
@@ -215,51 +208,34 @@ export default function PaymentsClient() {
       )}
 
       {/* Search */}
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ position: "relative", maxWidth: 440, marginBottom: 20 }}>
+        <Search
+          size={16}
+          color="#94a3b8"
+          style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}
+        />
         <input
           type="text"
           placeholder="Search by meter number, phone, provider ref, or token..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{
-            width: "100%",
-            maxWidth: 520,
-            padding: "11px 16px",
-            borderRadius: 10,
-            background: "rgba(30,41,59,0.7)",
-            border: "1px solid rgba(148,163,184,0.15)",
-            color: "var(--color-text-primary)",
-            fontSize: 14,
-            outline: "none",
-          }}
+          className="input-base"
+          style={{ paddingLeft: 36 }}
         />
       </div>
 
       {/* Table */}
       {loading ? (
-        <div className="glass-card">
-          <div style={{ padding: "40px", textAlign: "center", color: "var(--color-text-muted)" }}>
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                border: "2px solid rgba(14,165,233,0.2)",
-                borderTopColor: "var(--color-primary)",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-                margin: "0 auto 12px",
-              }}
-            />
-            Loading transactions...
-          </div>
+        <div className="glass-card" style={{ padding: "48px", textAlign: "center", color: "#64748b" }}>
+          Loading transactions...
         </div>
       ) : filtered.length === 0 ? (
-        <div className="glass-card" style={{ padding: "40px", textAlign: "center" }}>
+        <div className="glass-card" style={{ padding: "48px", textAlign: "center" }}>
           <div style={{ fontSize: 36, marginBottom: 10 }}>💳</div>
-          <p style={{ color: "var(--color-text-muted)", fontSize: 14, margin: 0 }}>
+          <p style={{ color: "#334155", fontWeight: 700, fontSize: 14, margin: 0 }}>
             {search || filterStatus !== "all"
-              ? "No transactions match the current filters."
-              : "No payment records yet."}
+              ? "No transactions match the current filter."
+              : "No payments recorded yet."}
           </p>
         </div>
       ) : (
@@ -267,31 +243,18 @@ export default function PaymentsClient() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
-                <tr
-                  style={{
-                    borderBottom: "1px solid rgba(148,163,184,0.1)",
-                    background: "rgba(15,23,42,0.5)",
-                  }}
-                >
-                  {[
-                    "",
-                    "Meter",
-                    "Phone",
-                    "Amount",
-                    "Channel",
-                    "Status",
-                    "Initiated",
-                  ].map((h) => (
+                <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
+                  {["Meter", "Channel", "Phone", "Amount", "Status", "Initiated At", "Details"].map((h) => (
                     <th
                       key={h}
                       style={{
-                        padding: "10px 16px",
+                        padding: "12px 16px",
                         textAlign: "left",
                         fontWeight: 700,
-                        fontSize: 11,
-                        color: "var(--color-text-muted)",
-                        letterSpacing: "0.04em",
+                        fontSize: 12,
+                        color: "#475569",
                         textTransform: "uppercase",
+                        letterSpacing: "0.03em",
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -301,147 +264,82 @@ export default function PaymentsClient() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((p) => (
-                  <>
-                    <tr
-                      key={p.id}
-                      style={{
-                        borderBottom: "1px solid rgba(148,163,184,0.06)",
-                        cursor: "pointer",
-                      }}
-                      onClick={() =>
-                        setExpandedId(expandedId === p.id ? null : p.id)
-                      }
-                      onMouseEnter={(e) =>
-                        ((e.currentTarget as HTMLElement).style.background =
-                          "rgba(14,165,233,0.04)")
-                      }
-                      onMouseLeave={(e) =>
-                        ((e.currentTarget as HTMLElement).style.background = "transparent")
-                      }
-                    >
-                      {/* Expand toggle */}
-                      <td style={{ padding: "12px 8px 12px 16px", width: 28 }}>
-                        <span
+                {filtered.map((p) => {
+                  const isExp = expandedId === p.id;
+                  return (
+                    <React.Fragment key={p.id}>
+                      <tr
+                        style={{
+                          borderBottom: isExp ? "none" : "1px solid #f1f5f9",
+                          cursor: "pointer",
+                          background: isExp ? "#f8fafc" : "transparent",
+                        }}
+                        onClick={() => setExpandedId(isExp ? null : p.id)}
+                        onMouseEnter={(e) => {
+                          if (!isExp) (e.currentTarget as HTMLElement).style.background = "#f8fafc";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isExp) (e.currentTarget as HTMLElement).style.background = "transparent";
+                        }}
+                      >
+                        <td
                           style={{
-                            display: "inline-block",
-                            color: "var(--color-text-dim)",
-                            fontSize: 12,
-                            transform: expandedId === p.id ? "rotate(90deg)" : "none",
-                            transition: "transform 0.15s",
+                            padding: "12px 16px",
+                            fontFamily: "monospace",
+                            fontWeight: 700,
+                            color: "#0f172a",
                           }}
                         >
-                          ›
-                        </span>
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px 16px",
-                          fontFamily: "monospace",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: "var(--color-primary)",
-                        }}
-                      >
-                        {p.meterNumber}
-                      </td>
-                      <td style={{ padding: "12px 16px", color: "var(--color-text-muted)" }}>
-                        {p.customerPhone}
-                      </td>
-                      <td style={{ padding: "12px 16px", fontWeight: 700 }}>
-                        {formatKes(p.requestedAmount)}
-                        {p.unitsIssued != null && (
-                          <div style={{ fontSize: 11, color: "var(--color-accent)", fontWeight: 600 }}>
-                            {p.unitsIssued} m³
-                          </div>
-                        )}
-                      </td>
-                      <td style={{ padding: "12px 16px" }}>
-                        <ChannelBadge channel={p.channel} />
-                      </td>
-                      <td style={{ padding: "12px 16px" }}>
-                        <StatusBadge status={p.status} />
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px 16px",
-                          color: "var(--color-text-muted)",
-                          whiteSpace: "nowrap",
-                          fontSize: 12,
-                        }}
-                      >
-                        {formatDate(p.initiatedAt)}
-                      </td>
-                    </tr>
-                    {expandedId === p.id && <ExpandedRow key={`${p.id}-exp`} p={p} />}
-                  </>
-                ))}
+                          {p.meterNumber}
+                        </td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <ChannelBadge channel={p.channel} />
+                        </td>
+                        <td style={{ padding: "12px 16px", color: "#475569" }}>
+                          {p.customerPhone}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 16px",
+                            fontWeight: 700,
+                            color: "#0f172a",
+                          }}
+                        >
+                          {formatKes(p.requestedAmount)}
+                        </td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <StatusBadge status={p.status} />
+                        </td>
+                        <td style={{ padding: "12px 16px", color: "#64748b", fontSize: 12 }}>
+                          {formatDate(p.initiatedAt)}
+                        </td>
+                        <td style={{ padding: "12px 16px", color: "#0284c7" }}>
+                          {isExp ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </td>
+                      </tr>
+                      {isExp && <ExpandedRow p={p} />}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
-          {/* Footer pagination */}
           <div
             style={{
               padding: "12px 16px",
-              borderTop: "1px solid rgba(148,163,184,0.08)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              borderTop: "1px solid #f1f5f9",
               fontSize: 12,
-              color: "var(--color-text-dim)",
+              color: "#64748b",
+              background: "#f8fafc",
             }}
           >
-            <span>
-              Showing {filtered.length} of {payments.length} records (page {page})
-            </span>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                style={{
-                  padding: "4px 12px",
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  border: "1px solid rgba(148,163,184,0.15)",
-                  background: "rgba(30,41,59,0.5)",
-                  color: page === 1 ? "var(--color-text-dim)" : "var(--color-text-muted)",
-                  cursor: page === 1 ? "default" : "pointer",
-                }}
-              >
-                ← Prev
-              </button>
-              <button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={payments.length < PAGE_SIZE}
-                style={{
-                  padding: "4px 12px",
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  border: "1px solid rgba(148,163,184,0.15)",
-                  background: "rgba(30,41,59,0.5)",
-                  color:
-                    payments.length < PAGE_SIZE
-                      ? "var(--color-text-dim)"
-                      : "var(--color-text-muted)",
-                  cursor: payments.length < PAGE_SIZE ? "default" : "pointer",
-                }}
-              >
-                Next →
-              </button>
-            </div>
+            Showing {filtered.length} of {payments.length} transaction{payments.length !== 1 ? "s" : ""}
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
+
+import React from "react";

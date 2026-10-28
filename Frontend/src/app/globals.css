@@ -1,28 +1,34 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
-/* ── Design System Tokens ─────────────────────────────── */
+/* ── Light Mode Design System Tokens ─────────────────────────────── */
 :root {
   /* Brand palette */
-  --color-primary:       #0ea5e9;   /* sky-500 */
-  --color-primary-dark:  #0284c7;   /* sky-600 */
-  --color-accent:        #06d6a0;   /* teal green */
-  --color-accent-dark:   #059669;
+  --color-primary:       #0284c7;   /* sky-600 */
+  --color-primary-dark:  #0369a1;   /* sky-700 */
+  --color-primary-light: #e0f2fe;   /* sky-100 */
+  --color-accent:        #059669;   /* emerald-600 */
+  --color-accent-dark:   #047857;   /* emerald-700 */
+  --color-accent-light:  #ecfdf5;   /* emerald-50 */
 
-  /* Dark surface */
-  --color-surface-base:  #030712;   /* gray-950 */
-  --color-surface-1:     #0f172a;   /* slate-900 */
-  --color-surface-2:     #1e293b;   /* slate-800 */
-  --color-surface-3:     #334155;   /* slate-700 */
+  /* Light surface hierarchy */
+  --color-surface-base:  #f8fafc;   /* slate-50 background */
+  --color-surface-1:     #ffffff;   /* pure white card */
+  --color-surface-2:     #f1f5f9;   /* slate-100 soft fill */
+  --color-surface-3:     #e2e8f0;   /* slate-200 border */
+  --color-surface-hover: #f1f5f9;
 
-  /* Text */
-  --color-text-primary:  #f8fafc;
-  --color-text-muted:    #94a3b8;
-  --color-text-dim:      #475569;
+  /* Crisp Light Typography */
+  --color-text-primary:   #0f172a;  /* slate-900 */
+  --color-text-secondary: #334155;  /* slate-700 */
+  --color-text-muted:     #64748b;  /* slate-500 */
+  --color-text-dim:       #94a3b8;  /* slate-400 */
 
   /* Gradients */
-  --gradient-brand:  linear-gradient(135deg, #0ea5e9 0%, #06d6a0 100%);
-  --gradient-surface: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --gradient-brand:        linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+  --gradient-brand-subtle: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%);
+  --gradient-surface:      linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  --gradient-accent:       linear-gradient(135deg, #059669 0%, #0d9488 100%);
 
   /* Radius */
   --radius-sm: 8px;
@@ -30,9 +36,12 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
 
-  /* Shadows */
-  --shadow-glow: 0 0 40px 0 rgba(14, 165, 233, 0.25);
-  --shadow-card: 0 4px 32px 0 rgba(0, 0, 0, 0.4);
+  /* Modern Refined Light Shadows */
+  --shadow-sm:   0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 4px 16px -2px rgba(15, 23, 42, 0.04);
+  --shadow-card-hover: 0 10px 25px -5px rgba(2, 132, 199, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --shadow-glow: 0 4px 20px -2px rgba(2, 132, 199, 0.25);
+  --shadow-dropdown: 0 10px 30px -4px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
 }
 
 /* ── Global Reset ─────────────────────────────────────── */
@@ -60,37 +69,56 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* ── Glass card utility ───────────────────────────────── */
+/* ── Professional Light Glass / Card utility ─────────── */
 .glass-card {
-  background: rgba(30, 41, 59, 0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease-in-out;
 }
 
-/* ── Glow button ─────────────────────────────────────── */
+.glass-card-interactive {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-interactive:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 28px;
+  padding: 10px 20px;
   background: var(--gradient-brand);
-  color: #fff;
+  color: #ffffff;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
   text-decoration: none;
   white-space: nowrap;
+  box-shadow: 0 2px 8px -1px rgba(2, 132, 199, 0.35);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -1px rgba(2, 132, 199, 0.45);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-outline {
@@ -98,50 +126,112 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 13px 27px;
-  background: transparent;
+  padding: 9px 19px;
+  background: #ffffff;
   color: var(--color-text-primary);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid #cbd5e1;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: all 0.2s ease;
   text-decoration: none;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-outline:hover {
   border-color: var(--color-primary);
-  background: rgba(14, 165, 233, 0.08);
+  color: var(--color-primary);
+  background: #f0f9ff;
 }
 
-/* ── Animated background blobs ───────────────────────── */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: #f1f5f9;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+  color: var(--color-text-primary);
+}
+
+/* ── Light Mode Input styling ────────────────────────── */
+.input-base {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.input-base:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.input-base::placeholder {
+  color: var(--color-text-dim);
+}
+
+/* ── Light background ambient blobs ───────────────────── */
 @keyframes blob-float {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(30px, -20px) scale(1.05); }
-  66%       { transform: translate(-20px, 15px) scale(0.95); }
+  33%       { transform: translate(25px, -15px) scale(1.04); }
+  66%       { transform: translate(-15px, 15px) scale(0.96); }
 }
 
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.15;
-  animation: blob-float 8s ease-in-out infinite;
+  filter: blur(90px);
+  opacity: 0.12;
+  animation: blob-float 10s ease-in-out infinite;
   pointer-events: none;
 }
 
-/* ── Fade-in animation ───────────────────────────────── */
+/* ── Animations ──────────────────────────────────────── */
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .fade-up {
-  animation: fade-up 0.6s ease-out both;
+  animation: fade-up 0.4s ease-out both;
 }
 
-.fade-up-1 { animation-delay: 0.1s; }
-.fade-up-2 { animation-delay: 0.2s; }
-.fade-up-3 { animation-delay: 0.3s; }
-.fade-up-4 { animation-delay: 0.4s; }
+.fade-up-1 { animation-delay: 0.05s; }
+.fade-up-2 { animation-delay: 0.1s; }
+.fade-up-3 { animation-delay: 0.15s; }
+.fade-up-4 { animation-delay: 0.2s; }
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
