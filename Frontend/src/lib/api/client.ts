@@ -3,7 +3,7 @@
  * All API calls go through this module.
  */
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000";
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5266";
 
 export class ApiError extends Error {
   constructor(
