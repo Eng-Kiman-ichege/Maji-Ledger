@@ -110,7 +110,7 @@ public class EndToEndProductionReadinessTests
 
             var meterHandler = new CreateMeterHandler(db);
             meterId = await meterHandler.Handle(
-                new CreateMeterCommand("MTR-SAV-2A-1099", MeterType.Prepaid, "SN-SAV-99", apartmentId, TariffId: null, adminUser),
+                new CreateMeterCommand("MTR-SAV-2A-1099", MeterType.Prepaid, "SN-SAV-99", apartmentId, adminUser),
                 CancellationToken.None);
         }
 
@@ -142,8 +142,7 @@ public class EndToEndProductionReadinessTests
         // Step 4: Generate and Activate QR Registration
         using (var db = CreateDbContext(dbName))
         {
-            var qrGenerator = new QrCodeGeneratorService();
-            var qrHandler = new RegisterQrCodeHandler(db, qrGenerator);
+            var qrHandler = new RegisterQrCodeFeatureHandler(db);
             var qrResult = await qrHandler.Handle(
                 new RegisterQrCodeCommand(meterId, configId, adminUser),
                 CancellationToken.None);
