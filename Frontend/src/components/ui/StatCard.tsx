@@ -5,10 +5,16 @@ interface StatCardProps {
   label: string;
   value: string | number;
   sub?: string;
+  change?: string;
+  trend?: "up" | "down" | "neutral" | string;
   accent?: boolean;
 }
 
-export default function StatCard({ icon, label, value, sub, accent }: StatCardProps) {
+export default function StatCard({ icon, label, value, sub, change, trend, accent }: StatCardProps) {
+  const displayText = change || sub;
+  const trendColor = trend === "up" ? "#4ade80" : trend === "down" ? "#f87171" : "var(--color-text-dim)";
+  const trendArrow = trend === "up" ? "↑ " : trend === "down" ? "↓ " : "";
+
   return (
     <div
       className="glass-card"
@@ -63,19 +69,19 @@ export default function StatCard({ icon, label, value, sub, accent }: StatCardPr
       <div
         style={{
           fontFamily: "'Plus Jakarta Sans', sans-serif",
-          fontSize: 32,
+          fontSize: 28,
           fontWeight: 800,
-          letterSpacing: "-1px",
-          lineHeight: 1,
+          letterSpacing: "-0.5px",
+          lineHeight: 1.1,
           color: accent ? "var(--color-primary)" : "var(--color-text-primary)",
         }}
       >
         {value}
       </div>
 
-      {sub && (
-        <div style={{ fontSize: 12, color: "var(--color-text-dim)", marginTop: 2 }}>
-          {sub}
+      {displayText && (
+        <div style={{ fontSize: 12, color: trendColor, marginTop: 4, display: "flex", alignItems: "center" }}>
+          {trendArrow}{displayText}
         </div>
       )}
     </div>
