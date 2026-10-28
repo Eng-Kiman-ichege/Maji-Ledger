@@ -126,12 +126,18 @@ public class GetScanToPayLandingHandler(IApplicationDbContext db)
         if (qr.Status == QrCodeStatus.Revoked)
             throw new ConflictException("This QR code is permanently revoked and is no longer active for billing. Please contact the property manager.");
 
+        if (qr.Meter.Status != MeterStatus.Active)
+            throw new ConflictException($"Meter '{qr.Meter.MaskedIdentifier}' is not active.");
+
         var meter = qr.Meter;
         var apt = meter.CurrentApartment;
         var building = apt?.Building;
         var property = building?.Property;
 
-        if (qr.PaymentProviderConfig.PropertyId.HasValue && property != null && qr.PaymentProviderConfig.PropertyId != property.Id)
+        if (!qr.PaymentProviderConfig.IsActive)
+            throw new ConflictException("The payment configuration for this meter has been deactivated. Please contact the property manager.");
+
+        if (qr.PaymentProviderConfig.PropertyId.HasValue && (property == null || qr.PaymentProviderConfig.PropertyId != property.Id))
             throw new ConflictException("The payment configuration does not match the property assigned to this meter. Please contact the property manager.");
 
         var tariff = meter.Tariff
@@ -240,8 +246,11 @@ public class InitiateQrPaymentHandler(
         var meter = qr.Meter;
         var property = meter.CurrentApartment?.Building?.Property;
 
+        if (!qr.PaymentProviderConfig.IsActive)
+            throw new ConflictException("Payment cannot be initiated because the payment configuration for this meter has been deactivated. Please contact the property manager.");
+
         // Prevent cross-property / wrong-property destination routing
-        if (qr.PaymentProviderConfig.PropertyId.HasValue && property != null && qr.PaymentProviderConfig.PropertyId != property.Id)
+        if (qr.PaymentProviderConfig.PropertyId.HasValue && (property == null || qr.PaymentProviderConfig.PropertyId != property.Id))
             throw new ConflictException("The payment configuration does not match the property assigned to this meter. Please contact the property manager.");
 
         // Check tariff base charge & calculate units to validate minimum payment

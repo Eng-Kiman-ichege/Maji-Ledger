@@ -26,7 +26,7 @@ public class PaymentFulfillmentService(
                 .ThenInclude(wp => wp != null ? wp.WaterToken : null)
             .FirstOrDefaultAsync(p => p.ProviderRef == providerRef, ct);
 
-        if (existingPayment?.WaterPurchase != null)
+        if (existingPayment?.WaterPurchase?.WaterToken != null)
         {
             if (attempt.Status != PaymentAttemptStatus.Confirmed)
             {

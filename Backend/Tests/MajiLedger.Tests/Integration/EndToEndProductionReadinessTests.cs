@@ -384,7 +384,7 @@ public class EndToEndProductionReadinessTests
 
             var landingHandler = new GetScanToPayLandingHandler(db);
             var actDeactivated = () => landingHandler.Handle(new GetScanToPayLandingQuery(tokenA), CancellationToken.None);
-            await actDeactivated.Should().ThrowAsync<NotFoundException>();
+            await actDeactivated.Should().ThrowAsync<ConflictException>().WithMessage("*deactivated*");
         }
     }
 
