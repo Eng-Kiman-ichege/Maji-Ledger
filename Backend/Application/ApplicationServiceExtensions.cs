@@ -25,8 +25,9 @@ public static class ApplicationServiceExtensions
         // Register all FluentValidation validators from this assembly
         services.AddValidatorsFromAssembly(assembly);
 
-        // Domain calculation services
+        // Domain calculation and fulfillment services
         services.AddScoped<Common.Interfaces.ITariffCalculatorService, Services.TariffCalculatorService>();
+        services.AddScoped<Common.Interfaces.IPaymentFulfillmentService, Services.PaymentFulfillmentService>();
 
         return services;
     }

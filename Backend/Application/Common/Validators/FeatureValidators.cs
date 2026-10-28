@@ -108,3 +108,46 @@ public class InitiateQrPaymentCommandValidator : AbstractValidator<InitiateQrPay
             .GreaterThan(0).WithMessage("Payment amount must be greater than zero.");
     }
 }
+
+public class InitiateDirectPaymentCommandValidator : AbstractValidator<InitiateDirectPaymentCommand>
+{
+    public InitiateDirectPaymentCommandValidator()
+    {
+        RuleFor(x => x.MeterId)
+            .NotEmpty().WithMessage("Meter ID is required.");
+
+        RuleFor(x => x.PaymentProviderConfigId)
+            .NotEmpty().WithMessage("Payment provider config ID is required.");
+
+        RuleFor(x => x.CustomerPhone)
+            .NotEmpty().WithMessage("Customer phone number is required.")
+            .Matches(@"^(?:\+254|0)[17]\d{8}$")
+            .WithMessage("Customer phone number must be a valid Kenyan mobile number (e.g. 0712345678 or +254712345678).");
+
+        RuleFor(x => x.Amount)
+            .GreaterThan(0).WithMessage("Payment amount must be greater than zero.");
+    }
+}
+
+public class ProcessPaybillPaymentCommandValidator : AbstractValidator<ProcessPaybillPaymentCommand>
+{
+    public ProcessPaybillPaymentCommandValidator()
+    {
+        RuleFor(x => x.BusinessShortCode)
+            .NotEmpty().WithMessage("Business shortcode is required.");
+
+        RuleFor(x => x.MeterNumber)
+            .NotEmpty().WithMessage("Meter number is required.");
+
+        RuleFor(x => x.ProviderRef)
+            .NotEmpty().WithMessage("Provider reference is required.");
+
+        RuleFor(x => x.CustomerPhone)
+            .NotEmpty().WithMessage("Customer phone number is required.")
+            .Matches(@"^(?:\+254|0)[17]\d{8}$")
+            .WithMessage("Customer phone number must be a valid Kenyan mobile number (e.g. 0712345678 or +254712345678).");
+
+        RuleFor(x => x.Amount)
+            .GreaterThan(0).WithMessage("Payment amount must be greater than zero.");
+    }
+}

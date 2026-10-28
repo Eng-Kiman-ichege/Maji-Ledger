@@ -60,6 +60,33 @@ public class PaymentsController(ISender sender) : ControllerBase
     }
 
     /// <summary>
+    /// Initiates a direct Paybill/USSD payment without QR scan.
+    /// </summary>
+    [HttpPost("initiate-direct")]
+    [ProducesResponseType(typeof(PaymentInitiationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> InitiateDirectPayment([FromBody] InitiateDirectPaymentCommand command, CancellationToken ct)
+    {
+        var result = await sender.Send(command, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Reconciles an incoming Paybill or USSD confirmed payment against the registered meter hierarchy.
+    /// </summary>
+    [HttpPost("paybill")]
+    [HttpPost("c2b")]
+    [ProducesResponseType(typeof(PaymentAttemptDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ProcessPaybill([FromBody] ProcessPaybillPaymentCommand command, CancellationToken ct)
+    {
+        var result = await sender.Send(command, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Webhook callback endpoint for mobile money payment confirmations (e.g., M-Pesa C2B / STK callback).
     /// </summary>
     [HttpPost("callback")]

@@ -73,3 +73,42 @@ export interface ScanToPayInfo {
   maskedMeterIdentifier: string;
   paymentReference?: string;
 }
+
+export interface ScanToPayLandingDto {
+  meterId: string;
+  maskedMeterIdentifier: string;
+  propertyName: string;
+  buildingName?: string;
+  unitNumber?: string;
+  paymentProviderDisplayName: string;
+  businessShortCode: string;
+  providerType: number;
+  baseCharge: number;
+  unitRate: number;
+  isTiered: boolean;
+  tariffName?: string;
+}
+
+export interface PaymentInitiationDto {
+  attemptId: string;
+  providerCheckoutId?: string;
+  status: "Initiated" | "Confirmed" | "Failed" | "Expired" | "Reversed";
+  expiresAt: string;
+}
+
+export interface PaymentAttemptDto {
+  id: string;
+  meterId: string;
+  meterNumber: string;
+  channel: string;
+  customerPhone: string;
+  requestedAmount: number;
+  status: "Initiated" | "Confirmed" | "Failed" | "Expired" | "Reversed";
+  providerCheckoutId?: string;
+  failureReason?: string;
+  initiatedAt: string;
+  expiresAt: string;
+  completedAt?: string;
+  waterToken?: string;
+  unitsIssued?: number;
+}
