@@ -345,7 +345,7 @@ export default function HomePage() {
         }}
       >
         <p style={{ margin: 0 }}>
-          Maji Ledger © {new Date().getFullYear()} — Secure Prepaid Water Billing & Property Ledger. All rights reserved.
+          Maji Ledger © 2026 — Secure Prepaid Water Billing & Property Ledger. All rights reserved.
         </p>
       </footer>
     </div>

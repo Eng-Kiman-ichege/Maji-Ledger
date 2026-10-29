@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "View all payment transactions, STS token records, and billing history.",
 };
 
+export const instant = false;
+
 export default function PaymentsPage() {
   return <PaymentsClient />;
 }

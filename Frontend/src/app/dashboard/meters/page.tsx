@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "View and manage all registered water meters across your portfolio.",
 };
 
+export const instant = false;
+
 export default function MetersPage() {
   return <MetersClient />;
 }
