@@ -34,6 +34,8 @@ public static class InfrastructureServiceExtensions
             sp.GetRequiredService<MajiLedgerDbContext>());
 
         // Infrastructure & external services
+        services.AddSingleton<IPasswordHasher, Security.PasswordHasher>();
+        services.AddSingleton<IJwtTokenService, Security.JwtTokenService>();
         services.AddSingleton<IDateTime, Services.DateTimeService>();
         services.AddScoped<ICurrentUserService, Services.CurrentUserService>();
         services.AddScoped<IStsTokenService, Services.PlaceholderStsTokenService>();

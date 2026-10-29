@@ -1,6 +1,10 @@
+using System.Text;
 using MajiLedger.Application;
 using MajiLedger.Infrastructure.DependencyInjection;
 using MajiLedger.WebAPI.Middleware;
+using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,13 +20,43 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // ────────────────────────────────────────────
-// 3.  API layer
+// 3.  Authentication & JWT
+// ────────────────────────────────────────────
+var secret = builder.Configuration["Jwt:Secret"] 
+             ?? "MajiLedgerSecureKey2026_SuperSecretKeyForJwtTokenGeneration_WaterMeteringSystem!";
+var issuer = builder.Configuration["Jwt:Issuer"] ?? "MajiLedger";
+var audience = builder.Configuration["Jwt:Audience"] ?? "MajiLedgerClients";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+        ValidateIssuer = true,
+        ValidIssuer = issuer,
+        ValidateAudience = true,
+        ValidAudience = audience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+// ────────────────────────────────────────────
+// 4.  API layer
 // ────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // ────────────────────────────────────────────
-// 3.  Swagger / OpenAPI
+// 5.  Swagger / OpenAPI
 // ────────────────────────────────────────────
 builder.Services.AddSwaggerGen(options =>
 {
@@ -30,18 +64,18 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title       = "Maji Ledger API",
         Version     = "v1",
-        Description = "Prepaid water billing and property management platform.",
+        Description = "Prepaid water billing and property management platform with Role-Based Access.",
         Contact     = new OpenApiContact { Name = "Maji Ledger" }
     });
 });
 
 // ────────────────────────────────────────────
-// 4.  Health checks
+// 6.  Health checks
 // ────────────────────────────────────────────
 builder.Services.AddHealthChecks();
 
 // ────────────────────────────────────────────
-// 5.  CORS  (tighten in production)
+// 7.  CORS (tighten in production)
 // ────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
@@ -60,7 +94,7 @@ var app = builder.Build();
 // ════════════════════════════════════════════
 
 // ────────────────────────────────────────────
-// 6.  Middleware pipeline
+// 8.  Middleware pipeline
 // ────────────────────────────────────────────
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -76,14 +110,34 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 // ────────────────────────────────────────────
-// 7.  Health-check endpoint (no DB yet)
+// 9.  Health-check endpoint
 // ────────────────────────────────────────────
 app.MapHealthChecks("/health");
 
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+
+// ────────────────────────────────────────────
+// 10. Seed Default Admin if none exists
+// ────────────────────────────────────────────
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+        await sender.Send(new MajiLedger.Application.Features.Auth.SeedDefaultAdminCommand());
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "Could not run initial default admin seed: {Message}", ex.Message);
+    }
+}
 
 app.Run();
