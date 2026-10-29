@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import OwnerDashboardClient from "./OwnerDashboardClient";
 
 export const metadata: Metadata = {
@@ -6,6 +7,12 @@ export const metadata: Metadata = {
   description: "Property owner dashboard scoped strictly to authorized properties with statements and QR analytics.",
 };
 
+export const instant = false;
+
 export default function OwnerDashboardPage() {
-  return <OwnerDashboardClient />;
+  return (
+    <Suspense fallback={<div style={{ padding: "32px 36px", color: "#64748b" }}>Loading owner portal...</div>}>
+      <OwnerDashboardClient />
+    </Suspense>
+  );
 }

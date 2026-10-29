@@ -98,6 +98,7 @@ export default function Home() {
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             <Link
               href="/dashboard/owner"
+              prefetch={false}
               className="btn-outline"
               style={{ padding: "8px 16px", fontSize: 13 }}
             >
@@ -107,6 +108,7 @@ export default function Home() {
 
             <Link
               href="/dashboard"
+              prefetch={false}
               className="btn-primary"
               style={{ padding: "8px 18px", fontSize: 13 }}
             >
@@ -192,6 +194,7 @@ export default function Home() {
           {/* Admin Entry */}
           <Link
             href="/dashboard"
+            prefetch={false}
             className="glass-card-interactive"
             style={{
               padding: "24px 28px",
@@ -228,6 +231,7 @@ export default function Home() {
           {/* Landlord Entry */}
           <Link
             href="/dashboard/owner"
+            prefetch={false}
             className="glass-card-interactive"
             style={{
               padding: "24px 28px",

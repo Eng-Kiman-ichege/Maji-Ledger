@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import DashboardOverviewClient from "./DashboardOverviewClient";
 
 export const metadata: Metadata = {
@@ -7,6 +8,12 @@ export const metadata: Metadata = {
     "Maji Ledger management dashboard — live overview of properties, meters, payments, and tokens.",
 };
 
+export const instant = false;
+
 export default function DashboardPage() {
-  return <DashboardOverviewClient />;
+  return (
+    <Suspense fallback={<div style={{ padding: 32, color: "#64748b" }}>Loading overview...</div>}>
+      <DashboardOverviewClient />
+    </Suspense>
+  );
 }

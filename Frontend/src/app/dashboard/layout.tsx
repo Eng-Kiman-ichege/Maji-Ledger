@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import DashboardSidebar from "@/components/layout/DashboardSidebar";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -19,7 +20,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           background: "transparent",
         }}
       >
-        {children}
+        <Suspense fallback={<div style={{ padding: 32, color: "#64748b" }}>Loading dashboard...</div>}>
+          {children}
+        </Suspense>
       </main>
     </div>
   );
