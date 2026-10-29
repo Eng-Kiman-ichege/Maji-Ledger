@@ -11,6 +11,37 @@ export type PaymentAttemptStatus = "Initiated" | "Confirmed" | "Failed" | "Expir
 export type PaymentChannel = "MpesaPaybill" | "AirtelMoneyPaybill" | "ScanToPay" | "Ussd";
 export type PropertyType = "Residential" | "Commercial" | "Mixed";
 export type TokenStatus = "Issued" | "Delivered" | "DeliveryFailed";
+export type UserRole = "Admin" | "Owner" | "Manager" | "Staff";
+
+// ─── Auth ───────────────────────────────────────────────
+export interface AuthUser {
+  id: string;
+  email: string;
+  fullName: string;
+  phoneNumber: string;
+  role: UserRole;
+  ownerId?: string;
+  authorizedPropertyIds: string[];
+}
+
+export interface LoginResult {
+  token: string;
+  user: AuthUser;
+}
+
+export interface UserSummaryDto {
+  id: string;
+  email: string;
+  fullName: string;
+  phoneNumber: string;
+  role: UserRole;
+  isActive: boolean;
+  ownerId?: string;
+  ownerName?: string;
+  assignedProperties: { propertyId: string; propertyName: string; town?: string; county?: string }[];
+  createdAt: string;
+}
+
 
 // ─── Property & Building ────────────────────────────────
 export interface PropertyDto {

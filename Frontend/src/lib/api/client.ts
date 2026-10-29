@@ -1,6 +1,6 @@
 /**
  * Maji Ledger API client — centralised base configuration.
- * All API calls go through this module.
+ * Automatically attaches JWT Bearer token from localStorage.
  */
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5266";
@@ -15,14 +15,34 @@ export class ApiError extends Error {
   }
 }
 
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const token = localStorage.getItem("maji_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function request<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+      ...init?.headers,
+    },
     ...init,
   });
+
+  if (res.status === 401) {
+    // Token expired or invalid → force logout
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("maji_token");
+      localStorage.removeItem("maji_user");
+      window.location.href = "/login";
+    }
+    throw new ApiError(401, "Session expired. Please log in again.");
+  }
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");

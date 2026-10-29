@@ -19,6 +19,12 @@ builder.Services.AddApplication();
 // ────────────────────────────────────────────
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Override Infrastructure's placeholder CurrentUserService with the
+// HTTP-context-aware one that reads claims from the JWT token.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<MajiLedger.Application.Common.Interfaces.ICurrentUserService,
+    MajiLedger.WebAPI.Services.CurrentUserService>();
+
 // ────────────────────────────────────────────
 // 3.  Authentication & JWT
 // ────────────────────────────────────────────
