@@ -318,51 +318,86 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Role legend */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: 20,
-            marginTop: 24,
-          }}
-        >
+        {/* Quick Demo Credentials Autofill for Presentation */}
+        <div style={{ marginTop: 24 }}>
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 12,
-              color: "#64748b",
-              background: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: 8,
-              padding: "6px 12px",
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#94a3b8",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              textAlign: "center",
+              marginBottom: 10,
             }}
           >
-            <ShieldCheck size={13} color="#0284c7" />
-            <span>Admin — Full access</span>
+            Quick Demo Accounts (Click to Fill)
           </div>
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 12,
-              color: "#64748b",
-              background: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: 8,
-              padding: "6px 12px",
+              justifyContent: "center",
+              gap: 12,
             }}
           >
-            <UserCheck size={13} color="#059669" />
-            <span>Owner — Property view</span>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail("admin@majiledger.com");
+                setPassword("Admin@123456");
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#0369a1",
+                background: "#f0f9ff",
+                border: "1px solid #bae6fd",
+                borderRadius: 8,
+                padding: "8px 12px",
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#e0f2fe")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#f0f9ff")}
+            >
+              <ShieldCheck size={14} color="#0284c7" />
+              <span>Demo Admin</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setEmail("owner@kilimani.com");
+                setPassword("Owner@123456");
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#047857",
+                background: "#ecfdf5",
+                border: "1px solid #a7f3d0",
+                borderRadius: 8,
+                padding: "8px 12px",
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#d1fae5")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#ecfdf5")}
+            >
+              <UserCheck size={14} color="#059669" />
+              <span>Demo Owner (James)</span>
+            </button>
           </div>
         </div>
 
         <p style={{ textAlign: "center", marginTop: 16, fontSize: 12, color: "#94a3b8" }}>
-          Contact your administrator if you do not have an account.
+          Maji Ledger v1.0 • Enterprise Role-Based Access Control
         </p>
       </div>
     </main>

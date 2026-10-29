@@ -37,4 +37,12 @@ public class AuthController(ISender sender) : ControllerBase
         await sender.Send(new SeedDefaultAdminCommand(), ct);
         return Ok(new { message = "Default administrator verified / created." });
     }
+
+    [HttpPost("seed-demo")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> SeedDemo(CancellationToken ct)
+    {
+        await sender.Send(new SeedDemoDataCommand(), ct);
+        return Ok(new { message = "Demonstration dataset seeded successfully: 3 properties, buildings, smart meters, payments, and owner accounts." });
+    }
 }

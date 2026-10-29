@@ -142,6 +142,7 @@ using (var scope = app.Services.CreateScope())
     {
         var sender = scope.ServiceProvider.GetRequiredService<ISender>();
         await sender.Send(new MajiLedger.Application.Features.Auth.SeedDefaultAdminCommand());
+        await sender.Send(new MajiLedger.Application.Features.Auth.SeedDemoDataCommand());
     }
     catch (Exception ex)
     {
