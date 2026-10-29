@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
+import { useAuth } from "@/contexts/AuthContext";
 import type { MeterDto, MeterStatus } from "@/types/domain";
-import { Gauge, Search, CheckCircle2, QrCode } from "lucide-react";
+import { Gauge, Search, CheckCircle2 } from "lucide-react";
 
 const STATUS_STYLE: Record<MeterStatus, { color: string; bg: string; border: string }> = {
   Active: {
@@ -49,6 +50,7 @@ function MeterStatusBadge({ status }: { status: MeterStatus }) {
 }
 
 export default function MetersClient() {
+  const { isAdmin, isOwner } = useAuth();
   const [meters, setMeters] = useState<MeterDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -81,6 +83,10 @@ export default function MetersClient() {
     return acc;
   }, {});
 
+  const columns = isAdmin
+    ? ["Meter Number", "Serial", "Type", "Status", "Assigned Unit", "QR Code"]
+    : ["Meter Number", "Serial", "Type", "Status", "Assigned Unit"];
+
   return (
     <div style={{ padding: "32px 36px 80px", maxWidth: 1440, margin: "0 auto" }}>
       {/* Header */}
@@ -95,10 +101,12 @@ export default function MetersClient() {
             marginBottom: 6,
           }}
         >
-          Smart Water Meters
+          {isOwner ? "My Water Meters Telemetry" : "Smart Water Meters"}
         </h1>
         <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
-          Hardware telemetry, STS prepaid association, and QR scan-to-pay provisioning.
+          {isOwner
+            ? "Status and telemetry for prepaid water meters installed in your properties."
+            : "Hardware telemetry, STS prepaid association, and QR scan-to-pay provisioning."}
         </p>
       </div>
 
@@ -196,7 +204,7 @@ export default function MetersClient() {
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
-                  {["Meter Number", "Serial", "Type", "Status", "Assigned Unit", "QR Code"].map((h) => (
+                  {columns.map((h) => (
                     <th
                       key={h}
                       style={{
@@ -253,25 +261,27 @@ export default function MetersClient() {
                         <span style={{ color: "#94a3b8", fontStyle: "italic" }}>Unassigned</span>
                       )}
                     </td>
-                    <td style={{ padding: "12px 16px" }}>
-                      {m.hasActiveQrCode ? (
-                        <span
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 5,
-                            fontSize: 12,
-                            color: "#059669",
-                            fontWeight: 600,
-                          }}
-                        >
-                          <CheckCircle2 size={13} />
-                          Active
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: 12, color: "#94a3b8" }}>—</span>
-                      )}
-                    </td>
+                    {isAdmin && (
+                      <td style={{ padding: "12px 16px" }}>
+                        {m.hasActiveQrCode ? (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 5,
+                              fontSize: 12,
+                              color: "#059669",
+                              fontWeight: 600,
+                            }}
+                          >
+                            <CheckCircle2 size={13} />
+                            Active
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 12, color: "#94a3b8" }}>—</span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

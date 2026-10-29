@@ -1,21 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Building2,
   Gauge,
   Receipt,
   QrCode,
-  UserCheck,
-  ShieldCheck,
+  Users,
+  LogOut,
   ExternalLink,
+  ShieldCheck,
+  UserCheck,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
-  const isOwnerSection = pathname.startsWith("/dashboard/owner");
+  const router = useRouter();
+  const { user, isAdmin, isOwner, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
 
   const adminNavItems = [
     { href: "/dashboard", label: "Executive Overview", icon: LayoutDashboard },
@@ -23,16 +32,27 @@ export default function DashboardSidebar() {
     { href: "/dashboard/meters", label: "Smart Water Meters", icon: Gauge },
     { href: "/dashboard/payments", label: "Transactions & Tokens", icon: Receipt },
     { href: "/dashboard/qr-analytics", label: "QR Traceability", icon: QrCode },
+    { href: "/dashboard/users", label: "User Management", icon: Users },
   ];
 
   const ownerNavItems = [
     { href: "/dashboard/owner", label: "My Property Overview", icon: LayoutDashboard },
-    { href: "/dashboard/properties", label: "View All Properties", icon: Building2 },
-    { href: "/dashboard/meters", label: "My Water Meters", icon: Gauge },
-    { href: "/dashboard/payments", label: "Tenant Payments", icon: Receipt },
+    { href: "/dashboard/properties", label: "My Properties", icon: Building2 },
+    { href: "/dashboard/meters", label: "Water Consumption", icon: Gauge },
+    { href: "/dashboard/payments", label: "Revenue & Earnings", icon: Receipt },
   ];
 
-  const currentNav = isOwnerSection ? ownerNavItems : adminNavItems;
+  const currentNav = isOwner ? ownerNavItems : adminNavItems;
+  const userInitials = user?.fullName
+    ? user.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : isAdmin
+    ? "AD"
+    : "PO";
 
   return (
     <aside
@@ -53,7 +73,7 @@ export default function DashboardSidebar() {
     >
       {/* Brand Header */}
       <Link
-        href="/"
+        href={isOwner ? "/dashboard/owner" : "/dashboard"}
         style={{
           display: "flex",
           alignItems: "center",
@@ -108,111 +128,66 @@ export default function DashboardSidebar() {
         </div>
       </Link>
 
-      {/* Role Switcher Pill */}
-      <div style={{ padding: "16px 16px 8px" }}>
-        <div
-          style={{
-            background: "#f8fafc",
-            borderRadius: 12,
-            padding: "4px",
-            border: "1px solid #e2e8f0",
-            display: "flex",
-            gap: 4,
-          }}
-        >
-          <Link
-            href="/dashboard"
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 6,
-              padding: "7px 10px",
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 600,
-              textDecoration: "none",
-              color: !isOwnerSection ? "#0284c7" : "#64748b",
-              background: !isOwnerSection ? "#ffffff" : "transparent",
-              boxShadow: !isOwnerSection ? "0 1px 3px rgba(15,23,42,0.08)" : "none",
-              border: !isOwnerSection ? "1px solid #e2e8f0" : "1px solid transparent",
-              transition: "all 0.15s ease",
-            }}
-          >
-            <ShieldCheck size={14} />
-            <span>Admin</span>
-          </Link>
-
-          <Link
-            href="/dashboard/owner"
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 6,
-              padding: "7px 10px",
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 600,
-              textDecoration: "none",
-              color: isOwnerSection ? "#059669" : "#64748b",
-              background: isOwnerSection ? "#ffffff" : "transparent",
-              boxShadow: isOwnerSection ? "0 1px 3px rgba(15,23,42,0.08)" : "none",
-              border: isOwnerSection ? "1px solid #e2e8f0" : "1px solid transparent",
-              transition: "all 0.15s ease",
-            }}
-          >
-            <UserCheck size={14} />
-            <span>Owner</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Active Role Indicator */}
+      {/* Role Badge Indicator (No switcher button) */}
       <div
         style={{
-          padding: "8px 20px 10px",
+          padding: "16px 16px 12px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          borderBottom: "1px solid #f8fafc",
         }}
       >
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: "#94a3b8",
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-          }}
-        >
-          {isOwnerSection ? "Property Owner View" : "Portfolio Administration"}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {isOwner ? (
+            <UserCheck size={16} color="#059669" />
+          ) : (
+            <ShieldCheck size={16} color="#0284c7" />
+          )}
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#64748b",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+            }}
+          >
+            {isOwner ? "Owner Portal" : "Admin Console"}
+          </span>
+        </div>
         <span
           style={{
             fontSize: 10,
             fontWeight: 700,
-            padding: "2px 6px",
-            borderRadius: 4,
-            background: isOwnerSection ? "#ecfdf5" : "#f0f9ff",
-            color: isOwnerSection ? "#047857" : "#0369a1",
+            padding: "3px 8px",
+            borderRadius: 6,
+            background: isOwner ? "#ecfdf5" : "#f0f9ff",
+            color: isOwner ? "#047857" : "#0369a1",
+            border: isOwner ? "1px solid #a7f3d0" : "1px solid #bae6fd",
           }}
         >
-          {isOwnerSection ? "OWNER" : "ADMIN"}
+          {user?.role ? user.role.toUpperCase() : isAdmin ? "ADMIN" : "OWNER"}
         </span>
       </div>
 
       {/* Navigation links */}
-      <nav style={{ padding: "0 12px", flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+      <nav
+        style={{
+          padding: "12px",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+        }}
+      >
         {currentNav.map((item) => {
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"
               : item.href === "/dashboard/owner"
               ? pathname === "/dashboard/owner"
-              : pathname.startsWith(item.href);
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           const IconComponent = item.icon;
 
@@ -256,7 +231,7 @@ export default function DashboardSidebar() {
         })}
       </nav>
 
-      {/* Quick link to Scan to Pay demo */}
+      {/* Quick link & User Profile Bar */}
       <div style={{ padding: "16px 14px", borderTop: "1px solid #f1f5f9" }}>
         <Link
           href="/pay/demo-token"
@@ -265,7 +240,7 @@ export default function DashboardSidebar() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "10px 12px",
+            padding: "9px 12px",
             background: "#f8fafc",
             borderRadius: 10,
             border: "1px solid #e2e8f0",
@@ -273,42 +248,46 @@ export default function DashboardSidebar() {
             fontSize: 12,
             color: "#334155",
             fontWeight: 600,
+            marginBottom: 14,
             transition: "all 0.15s ease",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span>📱</span>
-            <span>Scan-to-Pay Portal</span>
+            <span>Scan-to-Pay Demo</span>
           </div>
           <ExternalLink size={13} color="#94a3b8" />
         </Link>
 
-        {/* User profile avatar */}
+        {/* User profile & Logout */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: 10,
-            marginTop: 14,
-            padding: "6px 4px 0",
+            padding: "8px 6px",
+            background: "#f8fafc",
+            borderRadius: 10,
+            border: "1px solid #e2e8f0",
           }}
         >
           <div
             style={{
-              width: 32,
-              height: 32,
+              width: 34,
+              height: 34,
               borderRadius: "50%",
-              background: "#e0f2fe",
-              border: "1px solid #bae6fd",
+              background: isOwner ? "#d1fae5" : "#e0f2fe",
+              border: isOwner ? "1px solid #a7f3d0" : "1px solid #bae6fd",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 700,
-              color: "#0369a1",
+              color: isOwner ? "#047857" : "#0369a1",
+              flexShrink: 0,
             }}
           >
-            {isOwnerSection ? "PO" : "AD"}
+            {userInitials}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
@@ -320,13 +299,49 @@ export default function DashboardSidebar() {
                 overflow: "hidden",
                 textOverflow: "ellipsis",
               }}
+              title={user?.fullName || "User"}
             >
-              {isOwnerSection ? "Property Owner" : "Maji Administrator"}
+              {user?.fullName || "Maji User"}
             </div>
-            <div style={{ fontSize: 11, color: "#64748b" }}>
-              {isOwnerSection ? "Owner Portal" : "Admin Console"}
+            <div
+              style={{
+                fontSize: 11,
+                color: "#64748b",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              title={user?.email || ""}
+            >
+              {user?.email || "Signed in"}
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            title="Sign out"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 6,
+              borderRadius: 6,
+              color: "#94a3b8",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#ef4444";
+              e.currentTarget.style.background = "#fee2e2";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "#94a3b8";
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
     </aside>

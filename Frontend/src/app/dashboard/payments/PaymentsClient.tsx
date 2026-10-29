@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
+import { useAuth } from "@/contexts/AuthContext";
 import type { PaymentAttemptDto } from "@/types/domain";
 import { StatusBadge, ChannelBadge } from "@/components/ui/Badges";
-import { Receipt, Search, ChevronDown, ChevronUp, DollarSign } from "lucide-react";
+import { Receipt, Search, ChevronDown, ChevronUp } from "lucide-react";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("en-KE", {
@@ -23,7 +24,25 @@ function formatKes(n: number) {
   })}`;
 }
 
-function ExpandedRow({ p }: { p: PaymentAttemptDto }) {
+function ExpandedRow({ p, isAdmin }: { p: PaymentAttemptDto; isAdmin: boolean }) {
+  const fields = [
+    { label: "Payment Reference", value: p.providerCheckoutId ?? p.id.split("-")[0] },
+    { label: "Meter Number", value: p.meterNumber },
+    { label: "Amount Paid", value: formatKes(p.requestedAmount) },
+    { label: "Units Purchased", value: p.unitsIssued != null ? `${p.unitsIssued} m³` : "Pending" },
+    { label: "Paid At", value: p.completedAt ? formatDate(p.completedAt) : formatDate(p.initiatedAt) },
+    ...(isAdmin && p.waterToken
+      ? [
+          {
+            label: "STS Token (Admin Only)",
+            value: p.waterToken,
+            mono: true,
+          },
+        ]
+      : []),
+    ...(p.failureReason ? [{ label: "Failure Note", value: p.failureReason }] : []),
+  ];
+
   return (
     <tr>
       <td
@@ -44,19 +63,7 @@ function ExpandedRow({ p }: { p: PaymentAttemptDto }) {
             border: "1px solid #e2e8f0",
           }}
         >
-          {[
-            { label: "Attempt ID", value: p.id.split("-")[0] + "..." },
-            { label: "Meter ID", value: p.meterId.split("-")[0] + "..." },
-            { label: "Provider Ref", value: p.providerCheckoutId ?? "—" },
-            { label: "Completed At", value: p.completedAt ? formatDate(p.completedAt) : "—" },
-            { label: "Units Issued", value: p.unitsIssued != null ? `${p.unitsIssued} m³` : "—" },
-            {
-              label: "STS Token",
-              value: p.waterToken ? p.waterToken : "—",
-              mono: true,
-            },
-            ...(p.failureReason ? [{ label: "Failure Reason", value: p.failureReason }] : []),
-          ].map(({ label, value, mono }) => (
+          {fields.map(({ label, value, mono }) => (
             <div key={label}>
               <div
                 style={{
@@ -90,6 +97,7 @@ function ExpandedRow({ p }: { p: PaymentAttemptDto }) {
 }
 
 export default function PaymentsClient() {
+  const { isAdmin, isOwner } = useAuth();
   const [payments, setPayments] = useState<PaymentAttemptDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -118,8 +126,7 @@ export default function PaymentsClient() {
     const matchSearch =
       p.meterNumber.toLowerCase().includes(search.toLowerCase()) ||
       p.customerPhone.includes(search) ||
-      (p.providerCheckoutId ?? "").toLowerCase().includes(search.toLowerCase()) ||
-      (p.waterToken ?? "").includes(search);
+      (p.providerCheckoutId ?? "").toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === "all" || p.status === filterStatus;
     return matchSearch && matchStatus;
   });
@@ -147,13 +154,15 @@ export default function PaymentsClient() {
             marginBottom: 6,
           }}
         >
-          Transaction Ledger & STS Tokens
+          {isOwner ? "Tenant Water Payments & Revenue" : "Transaction Ledger & STS Tokens"}
         </h1>
         <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
-          Real-time mobile payment gateway settlements and encrypted 20-digit token dispatches.{" "}
+          {isOwner
+            ? "Real-time records of water vending payments made by tenants for your rental properties."
+            : "Real-time mobile payment gateway settlements and encrypted 20-digit STS token dispatches."}{" "}
           {!loading && payments.length > 0 && (
             <span style={{ color: "#059669", fontWeight: 700, marginLeft: 6 }}>
-              Total confirmed revenue: {formatKes(totalRevenue)}
+              Total confirmed collections: {formatKes(totalRevenue)}
             </span>
           )}
         </p>
@@ -216,7 +225,7 @@ export default function PaymentsClient() {
         />
         <input
           type="text"
-          placeholder="Search by meter number, phone, provider ref, or token..."
+          placeholder="Search by meter number, phone, or payment reference..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="input-base"
@@ -253,7 +262,7 @@ export default function PaymentsClient() {
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
-                  {["Meter", "Channel", "Phone", "Amount", "Status", "Initiated At", "Details"].map((h) => (
+                  {["Meter", "Channel", "Phone", "Amount Paid", "Status", "Date / Time", "Details"].map((h) => (
                     <th
                       key={h}
                       style={{
@@ -326,7 +335,7 @@ export default function PaymentsClient() {
                           {isExp ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </td>
                       </tr>
-                      {isExp && <ExpandedRow p={p} />}
+                      {isExp && <ExpandedRow p={p} isAdmin={isAdmin} />}
                     </React.Fragment>
                   );
                 })}
@@ -350,5 +359,3 @@ export default function PaymentsClient() {
     </div>
   );
 }
-
-import React from "react";

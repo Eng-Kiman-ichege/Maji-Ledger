@@ -1,78 +1,68 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { FeatureCard } from "@/components/ui/FeatureCard";
 import {
   ShieldCheck,
   UserCheck,
-  Droplets,
   Building2,
-  DollarSign,
+  Gauge,
+  Receipt,
   QrCode,
   ArrowRight,
   CheckCircle2,
   Sparkles,
+  Smartphone,
+  Lock,
 } from "lucide-react";
 
-export default function Home() {
-  return (
-    <main className="relative min-h-screen overflow-hidden" style={{ background: "#f8fafc" }}>
-      {/* ── Soft Ambient Light Blobs ── */}
-      <div
-        className="blob"
-        style={{
-          width: 600,
-          height: 600,
-          background: "#38bdf8",
-          top: "-200px",
-          left: "-100px",
-          opacity: 0.15,
-        }}
-      />
-      <div
-        className="blob"
-        style={{
-          width: 500,
-          height: 500,
-          background: "#34d399",
-          top: "35%",
-          right: "-100px",
-          opacity: 0.12,
-          animationDelay: "3s",
-        }}
-      />
+export const metadata: Metadata = {
+  title: "Maji Ledger — Smart Prepaid Water & Multi-Tenant Revenue Settlement",
+  description:
+    "End-to-end prepaid water billing platform: STS token generation, tenant M-Pesa vending, QR scan-to-pay, and automated property owner net earnings reconciliation.",
+};
 
-      {/* ── Top Navigation Bar ── */}
+export const instant = false;
+
+export default function HomePage() {
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #f0f7ff 0%, #f8fafc 400px, #ffffff 100%)",
+      }}
+    >
+      {/* ── Top Navigation ── */}
       <nav
         style={{
+          borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+          background: "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(12px)",
           position: "sticky",
           top: 0,
           zIndex: 50,
-          borderBottom: "1px solid #e2e8f0",
-          background: "rgba(255, 255, 255, 0.9)",
-          backdropFilter: "blur(16px)",
         }}
       >
         <div
           style={{
-            maxWidth: 1280,
+            maxWidth: 1200,
             margin: "0 auto",
-            padding: "16px 28px",
+            padding: "16px 24px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
           }}
         >
           {/* Logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div
               style={{
-                width: 38,
-                height: 38,
+                width: 36,
+                height: 36,
                 borderRadius: 10,
                 background: "var(--gradient-brand)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 20,
+                fontSize: 18,
                 color: "#ffffff",
                 boxShadow: "0 2px 8px -1px rgba(2, 132, 199, 0.4)",
               }}
@@ -97,23 +87,23 @@ export default function Home() {
           {/* Quick Access Links */}
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             <Link
-              href="/dashboard/owner"
+              href="/pay/demo-token"
               prefetch={false}
               className="btn-outline"
               style={{ padding: "8px 16px", fontSize: 13 }}
             >
-              <UserCheck size={16} />
-              <span>Owner Portal</span>
+              <Smartphone size={15} />
+              <span>Scan-to-Pay Demo</span>
             </Link>
 
             <Link
-              href="/dashboard"
+              href="/login"
               prefetch={false}
               className="btn-primary"
               style={{ padding: "8px 18px", fontSize: 13 }}
             >
-              <ShieldCheck size={16} />
-              <span>Admin Console</span>
+              <Lock size={15} />
+              <span>Sign In to Portal</span>
             </Link>
           </div>
         </div>
@@ -147,7 +137,7 @@ export default function Home() {
           }}
         >
           <Sparkles size={14} />
-          <span>Next-Gen Smart Water Metering & Automated Revenue Settlement</span>
+          <span>Role-Based Authentication & Scoped Landlord Ledgers</span>
         </div>
 
         {/* Title */}
@@ -177,10 +167,53 @@ export default function Home() {
           }}
         >
           Tenants vend prepaid water tokens instantly via M-Pesa. Administrators manage multi-property
-          portfolios with live telemetry. Landlords receive automated net payouts with transparent deductions.
+          portfolios and provision secure accounts. Property owners log in to track their water usage and net earnings.
         </p>
 
-        {/* Hero Portals CTA Card Grid */}
+        {/* Main CTA Buttons */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 16,
+            marginBottom: 48,
+            flexWrap: "wrap",
+          }}
+        >
+          <Link
+            href="/login"
+            prefetch={false}
+            className="btn-primary"
+            style={{
+              padding: "14px 28px",
+              fontSize: 16,
+              fontWeight: 700,
+              boxShadow: "0 4px 14px 0 rgba(2, 132, 199, 0.35)",
+            }}
+          >
+            <Lock size={18} />
+            <span>Sign In to Your Account</span>
+            <ArrowRight size={18} />
+          </Link>
+
+          <Link
+            href="/pay/demo-token"
+            prefetch={false}
+            className="btn-outline"
+            style={{
+              padding: "14px 24px",
+              fontSize: 16,
+              fontWeight: 600,
+              background: "#ffffff",
+            }}
+          >
+            <Smartphone size={18} />
+            <span>Try Scan-to-Pay Demo</span>
+          </Link>
+        </div>
+
+        {/* Feature Cards Grid */}
         <div
           style={{
             display: "grid",
@@ -191,22 +224,20 @@ export default function Home() {
             textAlign: "left",
           }}
         >
-          {/* Admin Entry */}
-          <Link
-            href="/dashboard"
-            prefetch={false}
-            className="glass-card-interactive"
+          {/* Admin Role Card */}
+          <div
+            className="glass-card"
             style={{
               padding: "24px 28px",
-              textDecoration: "none",
               borderTop: "3px solid #0284c7",
+              background: "#ffffff",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <div
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 36,
+                  height: 36,
                   borderRadius: 10,
                   background: "#f0f9ff",
                   color: "#0284c7",
@@ -217,33 +248,29 @@ export default function Home() {
               >
                 <ShieldCheck size={20} />
               </div>
-              <ArrowRight size={18} color="#0284c7" />
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", margin: 0 }}>
+                Administrator Console
+              </h3>
             </div>
-
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 6px" }}>
-              Administrator Console
-            </h3>
             <p style={{ fontSize: 13, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
-              Monitor system revenue, track platform deductions, add and filter properties, and audit smart meter tokens.
+              Create accounts for property owners with generated passwords, assign rental properties, monitor portfolio revenue, and inspect STS token dispatches.
             </p>
-          </Link>
+          </div>
 
-          {/* Landlord Entry */}
-          <Link
-            href="/dashboard/owner"
-            prefetch={false}
-            className="glass-card-interactive"
+          {/* Owner Role Card */}
+          <div
+            className="glass-card"
             style={{
               padding: "24px 28px",
-              textDecoration: "none",
               borderTop: "3px solid #059669",
+              background: "#ffffff",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <div
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 36,
+                  height: 36,
                   borderRadius: 10,
                   background: "#ecfdf5",
                   color: "#059669",
@@ -254,16 +281,14 @@ export default function Home() {
               >
                 <UserCheck size={20} />
               </div>
-              <ArrowRight size={18} color="#059669" />
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", margin: 0 }}>
+                Property Owner View
+              </h3>
             </div>
-
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 6px" }}>
-              Property Owner Portal
-            </h3>
             <p style={{ fontSize: 13, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
-              Landlord view of water spent per building, tenant vending activity, net payable disbursements, and statement exports.
+              Strictly scoped to your assigned buildings. Monitor tenant water consumed in m³, review gross payments, and download monthly disbursement statements.
             </p>
-          </Link>
+          </div>
         </div>
 
         {/* Feature Pills */}
@@ -271,74 +296,58 @@ export default function Home() {
           style={{
             display: "flex",
             justifyContent: "center",
-            gap: 24,
             flexWrap: "wrap",
-            fontSize: 13,
-            color: "#475569",
-            fontWeight: 600,
+            gap: 12,
+            maxWidth: 780,
+            margin: "0 auto",
           }}
         >
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <CheckCircle2 size={16} color="#059669" /> STS Compliant Tokens
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <CheckCircle2 size={16} color="#059669" /> Automated Landlord Deductions
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <CheckCircle2 size={16} color="#059669" /> Scan-to-Pay QR Codes
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <CheckCircle2 size={16} color="#059669" /> 100% Light Mode UI
-          </span>
+          {[
+            "Role-Based Access Control",
+            "Strict Property Scoping",
+            "M-Pesa Express & Paybill",
+            "IEC 62055-41 STS Tokens",
+            "Automatic 5% Platform Reconciliation",
+            "Real-Time Water Telemetry",
+          ].map((feature) => (
+            <div
+              key={feature}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 14px",
+                background: "#ffffff",
+                borderRadius: 9999,
+                border: "1px solid #e2e8f0",
+                fontSize: 12,
+                color: "#334155",
+                fontWeight: 600,
+                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+              }}
+            >
+              <CheckCircle2 size={13} color="#059669" />
+              <span>{feature}</span>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ── Feature Grid ── */}
-      <section
+      {/* ── Footer ── */}
+      <footer
         style={{
-          maxWidth: 1180,
-          margin: "0 auto",
-          padding: "20px 24px 80px",
+          borderTop: "1px solid #e2e8f0",
+          background: "#f8fafc",
+          padding: "32px 24px",
+          textAlign: "center",
+          fontSize: 13,
+          color: "#64748b",
         }}
       >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 20,
-          }}
-        >
-          <div className="glass-card" style={{ padding: "28px" }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>💧</div>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
-              Water Telemetry Charts
-            </h3>
-            <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, margin: 0 }}>
-              Interactive spline and area charts tracking daily cubic meters ($m^3$) dispensed to rental units with peak analysis.
-            </p>
-          </div>
-
-          <div className="glass-card" style={{ padding: "28px" }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>💳</div>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
-              Net Settlement Waterfall
-            </h3>
-            <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, margin: 0 }}>
-              Automatic deduction of 5% platform fee and SMS gateway token costs, providing landlords transparent monthly net payouts.
-            </p>
-          </div>
-
-          <div className="glass-card" style={{ padding: "28px" }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🏢</div>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
-              Admin Property Management
-            </h3>
-            <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, margin: 0 }}>
-              Filter by County, search estates, add new properties with building/apartment hierarchies, and drill down on water spent.
-            </p>
-          </div>
-        </div>
-      </section>
-    </main>
+        <p style={{ margin: 0 }}>
+          Maji Ledger © {new Date().getFullYear()} — Secure Prepaid Water Billing & Property Ledger. All rights reserved.
+        </p>
+      </footer>
+    </div>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api/client";
+import { useAuth } from "@/contexts/AuthContext";
 import type { OwnerDashboardDto, OwnerDto, PropertySummaryDto } from "@/types/domain";
 import StatCard from "@/components/ui/StatCard";
 import WaterConsumptionChart from "@/components/charts/WaterConsumptionChart";
@@ -14,12 +15,10 @@ import {
   DollarSign,
   Download,
   CheckCircle2,
-  Layers,
-  ArrowUpRight,
+  Filter,
   ShieldAlert,
   Wallet,
   Clock,
-  ExternalLink,
 } from "lucide-react";
 
 function formatKes(n: number) {
@@ -27,8 +26,10 @@ function formatKes(n: number) {
 }
 
 export default function OwnerDashboardClient() {
+  const { user, isAdmin, isOwner } = useAuth();
   const [owners, setOwners] = useState<OwnerDto[]>([]);
-  const [selectedOwnerId, setSelectedOwnerId] = useState<string>("");
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string>(user?.ownerId || "");
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>("all");
   const [dashboardData, setDashboardData] = useState<OwnerDashboardDto | null>(null);
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "month" | "custom">("all");
   const [customFrom, setCustomFrom] = useState("");
@@ -36,25 +37,41 @@ export default function OwnerDashboardClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Load owners on mount
+  // Sync selectedOwnerId when auth user loads
+  useEffect(() => {
+    if (user?.ownerId && !selectedOwnerId) {
+      setSelectedOwnerId(user.ownerId);
+    }
+  }, [user, selectedOwnerId]);
+
+  // Load owners on mount if Admin
   useEffect(() => {
     async function loadOwners() {
       try {
         const list = await api.get<OwnerDto[]>("/api/v1/owners");
         setOwners(list);
         if (list.length > 0 && !selectedOwnerId) {
-          setSelectedOwnerId(list[0].id);
+          const defaultId = user?.ownerId || list[0].id;
+          setSelectedOwnerId(defaultId);
         }
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to load property owners.");
+        if (isAdmin) {
+          setError(err instanceof Error ? err.message : "Failed to load property owners.");
+        }
       }
     }
-    loadOwners();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    if (isAdmin) {
+      loadOwners();
+    } else if (user?.ownerId) {
+      setSelectedOwnerId(user.ownerId);
+    }
+  }, [isAdmin, user, selectedOwnerId]);
 
   // Load dashboard data for selected owner
   const fetchOwnerDashboard = useCallback(async () => {
-    if (!selectedOwnerId) {
+    const ownerIdToFetch = isOwner ? (user?.ownerId || selectedOwnerId) : selectedOwnerId;
+    if (!ownerIdToFetch) {
       setLoading(false);
       return;
     }
@@ -88,7 +105,7 @@ export default function OwnerDashboardClient() {
       if (toParam) params.set("to", toParam);
       const queryStr = params.toString() ? `?${params.toString()}` : "";
 
-      const res = await api.get<OwnerDashboardDto>(`/api/v1/dashboard/owner/${selectedOwnerId}${queryStr}`);
+      const res = await api.get<OwnerDashboardDto>(`/api/v1/dashboard/owner/${ownerIdToFetch}${queryStr}`);
       setDashboardData(res);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load owner dashboard.");
@@ -96,25 +113,47 @@ export default function OwnerDashboardClient() {
     } finally {
       setLoading(false);
     }
-  }, [selectedOwnerId, dateFilter, customFrom, customTo]);
+  }, [isOwner, user?.ownerId, selectedOwnerId, dateFilter, customFrom, customTo]);
 
   useEffect(() => {
     fetchOwnerDashboard();
   }, [fetchOwnerDashboard]);
 
-  const f = dashboardData?.financials;
+  // Filtered properties based on selectedPropertyId dropdown
+  const filteredProperties = useMemo(() => {
+    if (!dashboardData?.propertySummaries) return [];
+    if (selectedPropertyId === "all") return dashboardData.propertySummaries;
+    return dashboardData.propertySummaries.filter((p) => p.propertyId === selectedPropertyId);
+  }, [dashboardData, selectedPropertyId]);
+
+  // Re-compute aggregated totals when a single property is selected
+  const activeFinancials = useMemo(() => {
+    if (selectedPropertyId === "all" || !dashboardData?.financials) {
+      return dashboardData?.financials;
+    }
+    const prop = filteredProperties[0];
+    if (!prop) return dashboardData?.financials;
+
+    return {
+      grossConfirmedCollections: prop.confirmedCollections,
+      totalUnitsPurchased: prop.unitsPurchased,
+      confirmedPaymentCount: prop.confirmedPaymentCount,
+      smsDeliveredCount: Math.round(prop.confirmedPaymentCount * 0.9),
+      tokenIssuanceCount: prop.confirmedPaymentCount,
+    };
+  }, [dashboardData, selectedPropertyId, filteredProperties]);
+
+  const f = activeFinancials;
   const cb = dashboardData?.channelBreakdown;
   const currentOwner = owners.find((o) => o.id === selectedOwnerId);
 
-  // Financial payout calculations:
-  // Gross collections from owner's tenants
+  // Financial payout calculations
   const gross = f?.grossConfirmedCollections || 0;
   const platformFee = Math.round(gross * 0.05 * 100) / 100; // 5% Maji Ledger fee
-  const smsExpenses = Math.round((f?.smsDeliveredCount || 0) * 0.8 * 100) / 100;
-  const netPayable = Math.max(0, Math.round((gross - platformFee - smsExpenses) * 100) / 100);
+  const netPayable = Math.max(0, Math.round((gross - platformFee) * 100) / 100);
 
   const handleExportCsv = () => {
-    if (!dashboardData?.propertySummaries.length) return;
+    if (!filteredProperties.length) return;
 
     const headers = [
       "Property Name",
@@ -122,16 +161,15 @@ export default function OwnerDashboardClient() {
       "County",
       "Buildings",
       "Apartments",
-      "Meters",
-      "Active QR",
+      "Water Meters",
+      "Water Used (m3)",
       "Gross Collections (KES)",
-      "Maji Ledger Fee (5%)",
+      "Platform Fee (5%)",
       "Net Payout (KES)",
-      "Water Units (m3)",
-      "Confirmed Tokens",
+      "Transactions",
     ];
 
-    const rows = dashboardData.propertySummaries.map((p) => {
+    const rows = filteredProperties.map((p) => {
       const fee = p.confirmedCollections * 0.05;
       const net = p.confirmedCollections - fee;
       return [
@@ -141,16 +179,16 @@ export default function OwnerDashboardClient() {
         p.buildingCount,
         p.apartmentCount,
         p.meterCount,
-        p.activeQrCount,
+        p.unitsPurchased.toFixed(2),
         p.confirmedCollections.toFixed(2),
         fee.toFixed(2),
         net.toFixed(2),
-        p.unitsPurchased.toFixed(2),
         p.confirmedPaymentCount,
       ];
     });
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const csvContent =
+      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -163,7 +201,7 @@ export default function OwnerDashboardClient() {
 
   return (
     <div style={{ padding: "32px 36px 80px", maxWidth: 1440, margin: "0 auto" }}>
-      {/* ── Top Header & Owner Selector ── */}
+      {/* ── Top Header & Filters ── */}
       <div
         style={{
           display: "flex",
@@ -171,7 +209,7 @@ export default function OwnerDashboardClient() {
           alignItems: "flex-start",
           flexWrap: "wrap",
           gap: 20,
-          marginBottom: 28,
+          marginBottom: 24,
         }}
       >
         <div>
@@ -191,10 +229,10 @@ export default function OwnerDashboardClient() {
               }}
             >
               <UserCheck size={14} />
-              LANDLORD & PROPERTY OWNER PORTAL
+              PROPERTY OWNER PORTAL
             </span>
             <span style={{ fontSize: 13, color: "#64748b" }}>•</span>
-            <span style={{ fontSize: 13, color: "#0284c7", fontWeight: 600 }}>Active Tenancy Tracking</span>
+            <span style={{ fontSize: 13, color: "#0284c7", fontWeight: 600 }}>Earnings & Water Consumption</span>
           </div>
 
           <h1
@@ -207,23 +245,53 @@ export default function OwnerDashboardClient() {
               margin: "6px 0",
             }}
           >
-            {dashboardData?.ownerName ? `${dashboardData.ownerName}'s Portfolio` : "Property Owner Dashboard"}
+            {dashboardData?.ownerName
+              ? `${dashboardData.ownerName}'s Properties`
+              : user?.fullName
+              ? `${user.fullName}'s Properties`
+              : "Property Owner Overview"}
           </h1>
           <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>
-            Monitor tenant water consumption, track smart meter dispatches, and review net monthly disbursements.
+            Track total water consumed by tenants and revenue collected across your rental properties.
           </p>
         </div>
 
-        {/* Owner Dropdown Switcher & Date Controls */}
+        {/* Filter Bar & Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          {owners.length > 0 && (
+          {/* Property Filter Dropdown */}
+          {dashboardData?.propertySummaries && dashboardData.propertySummaries.length > 1 && (
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#475569" }}>Viewing As:</span>
+              <Filter size={15} color="#64748b" />
+              <select
+                value={selectedPropertyId}
+                onChange={(e) => setSelectedPropertyId(e.target.value)}
+                className="input-base"
+                style={{ width: "auto", fontSize: 13, fontWeight: 600, padding: "8px 12px" }}
+              >
+                <option value="all">All Properties ({dashboardData.propertySummaries.length})</option>
+                {dashboardData.propertySummaries.map((p) => (
+                  <option key={p.propertyId} value={p.propertyId}>
+                    {p.propertyName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Admin Owner Selector (Only visible to Admins inspecting an owner) */}
+          {isAdmin && owners.length > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>
+                Admin View:
+              </span>
               <select
                 value={selectedOwnerId}
-                onChange={(e) => setSelectedOwnerId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedOwnerId(e.target.value);
+                  setSelectedPropertyId("all");
+                }}
                 className="input-base"
-                style={{ width: "auto", fontSize: 13, fontWeight: 600 }}
+                style={{ width: "auto", fontSize: 13, fontWeight: 600, padding: "8px 12px" }}
               >
                 {owners.map((o) => (
                   <option key={o.id} value={o.id}>
@@ -241,70 +309,6 @@ export default function OwnerDashboardClient() {
           </button>
         </div>
       </div>
-
-      {/* ── Owner Profile Card Banner ── */}
-      {currentOwner && (
-        <div
-          className="glass-card"
-          style={{
-            padding: "18px 24px",
-            marginBottom: 24,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 16,
-            background: "linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)",
-            border: "1px solid #bbf7d0",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 12,
-                background: "#ecfdf5",
-                color: "#059669",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 20,
-                border: "1px solid #a7f3d0",
-              }}
-            >
-              👤
-            </div>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>{currentOwner.fullName}</div>
-              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
-                Phone: <strong>{currentOwner.phone}</strong> • KRA PIN: {currentOwner.kraPin || "A001928374Z"} • Status:{" "}
-                <span style={{ color: "#059669", fontWeight: 700 }}>Verified Owner</span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 13 }}>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 11, color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>
-                Authorized Properties
-              </div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#0284c7" }}>
-                {dashboardData?.authorizedPropertyCount ?? 0} Registered
-              </div>
-            </div>
-
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 11, color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>
-                Disbursement Account
-              </div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#059669" }}>
-                M-Pesa ({currentOwner.phone})
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── Error Banner ── */}
       {error && (
@@ -331,7 +335,7 @@ export default function OwnerDashboardClient() {
         </div>
       )}
 
-      {/* ── 4 Owner KPI Stat Cards ── */}
+      {/* ── 4 KPI Stat Cards: Net Earnings, Water Used, Gross Collections, Properties ── */}
       <div
         style={{
           display: "grid",
@@ -342,9 +346,9 @@ export default function OwnerDashboardClient() {
       >
         <StatCard
           icon={<Wallet size={20} />}
-          label="Net Payout Due"
+          label="Net Earnings"
           value={formatKes(netPayable)}
-          change="After 5% fee & SMS"
+          change="After 5% platform maintenance"
           trend="up"
           accent
           colorScheme="emerald"
@@ -352,31 +356,35 @@ export default function OwnerDashboardClient() {
 
         <StatCard
           icon={<Droplets size={20} />}
-          label="Water Volume Spent"
+          label="Total Water Used"
           value={`${(f?.totalUnitsPurchased ?? 0).toLocaleString()} m³`}
-          change="Consumed by tenants"
+          change="Consumed by registered meters"
           trend="up"
           colorScheme="blue"
         />
 
         <StatCard
           icon={<DollarSign size={20} />}
-          label="Gross Collections"
+          label="Total Paid / Collections"
           value={formatKes(gross)}
-          sub={`${f?.confirmedPaymentCount ?? 0} token transactions`}
+          sub={`${f?.confirmedPaymentCount ?? 0} tenant payments`}
           colorScheme="teal"
         />
 
         <StatCard
           icon={<Building2 size={20} />}
           label="Properties & Units"
-          value={`${dashboardData?.authorizedPropertyCount ?? 0} Properties`}
-          sub={`${dashboardData?.propertySummaries?.reduce((s, p) => s + p.apartmentCount, 0) || 0} tenant units`}
+          value={
+            selectedPropertyId === "all"
+              ? `${dashboardData?.authorizedPropertyCount ?? 0} Properties`
+              : "1 Selected Property"
+          }
+          sub={`${filteredProperties.reduce((s, p) => s + p.apartmentCount, 0)} tenant apartments`}
           colorScheme="indigo"
         />
       </div>
 
-      {/* ── Owner Settlement Statement Banner ── */}
+      {/* ── Settlement Statement Summary ── */}
       <div
         className="glass-card"
         style={{
@@ -408,11 +416,11 @@ export default function OwnerDashboardClient() {
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
                 }}
               >
-                Owner Settlement Breakdown
+                Revenue Settlement Summary
               </h3>
             </div>
             <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0" }}>
-              Transparent deduction breakdown: Gross revenue minus platform maintenance fee
+              Transparent breakdown of prepaid tenant collections and owner disbursement.
             </p>
           </div>
 
@@ -429,12 +437,12 @@ export default function OwnerDashboardClient() {
           >
             <Clock size={15} color="#059669" />
             <span style={{ fontSize: 13, fontWeight: 700, color: "#047857" }}>
-              Payout Cycle: Automated Every 24h
+              Settlement Status: Active & Reconciled
             </span>
           </div>
         </div>
 
-        {/* 3 Step Formula Line */}
+        {/* Breakdown Row */}
         <div
           style={{
             display: "grid",
@@ -448,23 +456,23 @@ export default function OwnerDashboardClient() {
         >
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>
-              1. Gross Water Collections
+              1. Gross Water Paid
             </div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", marginTop: 4 }}>
               {formatKes(gross)}
             </div>
-            <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>From prepaid meter vending</div>
+            <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>From tenant water vending</div>
           </div>
 
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#b45309", textTransform: "uppercase" }}>
-              2. Platform Deductions (5% + SMS)
+              2. Platform Service Fee (5%)
             </div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#d97706", marginTop: 4 }}>
-              - {formatKes(platformFee + smsExpenses)}
+              - {formatKes(platformFee)}
             </div>
             <div style={{ fontSize: 11, color: "#b45309", marginTop: 2 }}>
-              Fee: {formatKes(platformFee)} • SMS: {formatKes(smsExpenses)}
+              Platform operations & meter automation
             </div>
           </div>
 
@@ -477,7 +485,7 @@ export default function OwnerDashboardClient() {
             }}
           >
             <div style={{ fontSize: 11, fontWeight: 700, color: "#047857", textTransform: "uppercase" }}>
-              3. Net Owner Payable (95%)
+              3. Net Owner Collections (95%)
             </div>
             <div
               style={{
@@ -491,13 +499,13 @@ export default function OwnerDashboardClient() {
               = {formatKes(netPayable)}
             </div>
             <div style={{ fontSize: 11, color: "#047857", marginTop: 2, fontWeight: 600 }}>
-              Directly into owner bank / M-Pesa
+              Disbursed to owner account
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Charts Row: Water Usage for Landlord + Payment Methods ── */}
+      {/* ── Charts: Water Consumption Flow ── */}
       <div
         style={{
           display: "grid",
@@ -508,7 +516,7 @@ export default function OwnerDashboardClient() {
       >
         <WaterConsumptionChart
           title="Tenant Water Consumption Flow"
-          subtitle="Daily cubic meters (m³) of prepaid water consumed across your properties"
+          subtitle="Daily cubic meters (m³) consumed across your registered water meters"
           color="#059669"
           unitLabel="m³"
         />
@@ -516,7 +524,7 @@ export default function OwnerDashboardClient() {
         <ChannelDonutChart channelBreakdown={cb} />
       </div>
 
-      {/* ── My Properties & Tenant Buildings Table ── */}
+      {/* ── Properties & Water Usage Table ── */}
       <div
         className="glass-card"
         style={{
@@ -549,11 +557,11 @@ export default function OwnerDashboardClient() {
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
                 }}
               >
-                My Authorized Properties & Units
+                Property Breakdown & Water Used
               </h2>
             </div>
             <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0" }}>
-              Detailed breakdown of water spent and net earnings per property
+              Water units consumed, total paid, and net payout per property
             </p>
           </div>
 
@@ -563,14 +571,14 @@ export default function OwnerDashboardClient() {
           </button>
         </div>
 
-        {dashboardData?.propertySummaries.length === 0 ? (
+        {filteredProperties.length === 0 ? (
           <div style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>
             <div style={{ fontSize: 36, marginBottom: 10 }}>🏘️</div>
             <p style={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
-              No properties currently assigned to this owner profile.
+              No properties found matching your selection.
             </p>
             <p style={{ fontSize: 13, color: "#94a3b8" }}>
-              Contact your system administrator to associate your rental buildings.
+              Check your assigned properties or contact administrator.
             </p>
           </div>
         ) : (
@@ -579,27 +587,27 @@ export default function OwnerDashboardClient() {
               <thead>
                 <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
                   <th style={{ textAlign: "left", padding: "12px 16px", color: "#475569", fontWeight: 700 }}>
-                    Property Name
+                    Property
                   </th>
                   <th style={{ textAlign: "left", padding: "12px 16px", color: "#475569", fontWeight: 700 }}>
-                    Water Spent (m³)
+                    Water Used (m³)
                   </th>
                   <th style={{ textAlign: "left", padding: "12px 16px", color: "#475569", fontWeight: 700 }}>
-                    Tenant Collections
+                    Total Paid
                   </th>
                   <th style={{ textAlign: "left", padding: "12px 16px", color: "#475569", fontWeight: 700 }}>
-                    Maji Ledger Fee (5%)
+                    Platform Fee (5%)
                   </th>
                   <th style={{ textAlign: "left", padding: "12px 16px", color: "#475569", fontWeight: 700 }}>
-                    Net Payout
+                    Net Collected / Earned
                   </th>
                   <th style={{ textAlign: "left", padding: "12px 16px", color: "#475569", fontWeight: 700 }}>
-                    Units / Meters
+                    Buildings & Units
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {dashboardData?.propertySummaries.map((p) => {
+                {filteredProperties.map((p) => {
                   const fee = p.confirmedCollections * 0.05;
                   const net = p.confirmedCollections - fee;
                   return (
@@ -619,7 +627,7 @@ export default function OwnerDashboardClient() {
                           </span>
                         </div>
                         <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
-                          {p.confirmedPaymentCount} vending events
+                          {p.confirmedPaymentCount} payments
                         </div>
                       </td>
 
@@ -636,7 +644,7 @@ export default function OwnerDashboardClient() {
                           {formatKes(net)}
                         </div>
                         <div style={{ fontSize: 11, color: "#059669", fontWeight: 600, marginTop: 2 }}>
-                          ✓ Ready for payout
+                          ✓ Earned
                         </div>
                       </td>
 
@@ -645,7 +653,7 @@ export default function OwnerDashboardClient() {
                           <strong>{p.buildingCount}</strong> bldgs • <strong>{p.apartmentCount}</strong> units
                         </div>
                         <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
-                          {p.meterCount} smart meters ({p.activeQrCount} QR enabled)
+                          {p.meterCount} water meters
                         </div>
                       </td>
                     </tr>

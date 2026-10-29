@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api/client";
 import type { AdminDashboardDto, PaymentAttemptDto, PropertySummaryDto, PropertyType } from "@/types/domain";
 import StatCard from "@/components/ui/StatCard";
@@ -40,6 +42,15 @@ function formatKes(n: number) {
 }
 
 export default function DashboardOverviewClient() {
+  const router = useRouter();
+  const { user, isOwner } = useAuth();
+
+  useEffect(() => {
+    if (isOwner) {
+      router.replace("/dashboard/owner");
+    }
+  }, [isOwner, router]);
+
   const [adminData, setAdminData] = useState<AdminDashboardDto | null>(null);
   const [recentPayments, setRecentPayments] = useState<PaymentAttemptDto[]>([]);
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "month" | "custom">("all");
