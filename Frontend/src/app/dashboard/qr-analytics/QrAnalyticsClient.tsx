@@ -31,6 +31,14 @@ export default function QrAnalyticsClient() {
   const [activeModalQr, setActiveModalQr] = useState<QrTraceabilityDto | null>(null);
   const [copiedToken, setCopiedToken] = useState(false);
 
+  // Fetch properties once on mount for filter dropdown
+  useEffect(() => {
+    api
+      .get<PropertyDto[]>("/api/v1/properties")
+      .then(setProperties)
+      .catch(() => {});
+  }, []);
+
   const fetchAnalytics = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -46,19 +54,14 @@ export default function QrAnalyticsClient() {
       }
 
       const queryStr = params.toString() ? `?${params.toString()}` : "";
-      const [res, props] = await Promise.all([
-        api.get<QrAnalyticsResultDto>(`/api/v1/dashboard/analytics/qr${queryStr}`),
-        properties.length === 0 ? api.get<PropertyDto[]>("/api/v1/properties") : Promise.resolve(properties),
-      ]);
-
+      const res = await api.get<QrAnalyticsResultDto>(`/api/v1/dashboard/analytics/qr${queryStr}`);
       setAnalytics(res);
-      if (properties.length === 0) setProperties(props);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load QR analytics.");
     } finally {
       setLoading(false);
     }
-  }, [selectedPropertyId, selectedStatus, fromDate, toDate, properties]);
+  }, [selectedPropertyId, selectedStatus, fromDate, toDate]);
 
   useEffect(() => {
     fetchAnalytics();
