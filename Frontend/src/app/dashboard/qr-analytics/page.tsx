@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Physical meter QR deployment traceability, conversion metrics, and fulfillment analytics.",
 };
 
+export const instant = false;
+
 export default function QrAnalyticsPage() {
   return <QrAnalyticsClient />;
 }

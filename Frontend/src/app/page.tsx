@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  ShieldCheck,
-  UserCheck,
   Building2,
   Gauge,
   Receipt,
@@ -209,87 +207,11 @@ export default function HomePage() {
             }}
           >
             <Smartphone size={18} />
-            <span>Try Scan-to-Pay Demo</span>
+            <span>Scan-to-Pay</span>
           </Link>
         </div>
 
-        {/* Feature Cards Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: 20,
-            maxWidth: 840,
-            margin: "0 auto 48px",
-            textAlign: "left",
-          }}
-        >
-          {/* Admin Role Card */}
-          <div
-            className="glass-card"
-            style={{
-              padding: "24px 28px",
-              borderTop: "3px solid #0284c7",
-              background: "#ffffff",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: "#f0f9ff",
-                  color: "#0284c7",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <ShieldCheck size={20} />
-              </div>
-              <h3 style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", margin: 0 }}>
-                Administrator Console
-              </h3>
-            </div>
-            <p style={{ fontSize: 13, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
-              Create accounts for property owners with generated passwords, assign rental properties, monitor portfolio revenue, and inspect STS token dispatches.
-            </p>
-          </div>
 
-          {/* Owner Role Card */}
-          <div
-            className="glass-card"
-            style={{
-              padding: "24px 28px",
-              borderTop: "3px solid #059669",
-              background: "#ffffff",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: "#ecfdf5",
-                  color: "#059669",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <UserCheck size={20} />
-              </div>
-              <h3 style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", margin: 0 }}>
-                Property Owner View
-              </h3>
-            </div>
-            <p style={{ fontSize: 13, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
-              Strictly scoped to your assigned buildings. Monitor tenant water consumed in m³, review gross payments, and download monthly disbursement statements.
-            </p>
-          </div>
-        </div>
 
         {/* Feature Pills */}
         <div
