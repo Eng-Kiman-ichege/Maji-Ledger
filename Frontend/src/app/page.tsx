@@ -91,7 +91,7 @@ export default function HomePage() {
               style={{ padding: "8px 16px", fontSize: 13 }}
             >
               <Smartphone size={15} />
-              <span>Scan-to-Pay Demo</span>
+              <span>Scan-to-Pay</span>
             </Link>
 
             <Link

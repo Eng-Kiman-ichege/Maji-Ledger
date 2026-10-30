@@ -254,7 +254,7 @@ export default function DashboardSidebar() {
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span>📱</span>
-            <span>Scan-to-Pay Demo</span>
+            <span>Scan-to-Pay</span>
           </div>
           <ExternalLink size={13} color="#94a3b8" />
         </Link>
