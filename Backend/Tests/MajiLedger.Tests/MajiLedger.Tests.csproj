@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\Domain\MajiLedger.Domain.csproj" />
     <ProjectReference Include="..\..\Application\MajiLedger.Application.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MajiLedger.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\WebAPI\MajiLedger.WebAPI.csproj" />
   </ItemGroup>
 
 </Project>

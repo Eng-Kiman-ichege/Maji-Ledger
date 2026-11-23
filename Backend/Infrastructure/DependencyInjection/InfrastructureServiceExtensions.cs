@@ -16,9 +16,11 @@ public static class InfrastructureServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("MajiLedgerDb")
+        var connectionString = configuration.GetConnectionString("PropertyLedgerDb")
+            ?? configuration.GetConnectionString("MajiLedgerDb")
+            ?? configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException(
-                "Connection string 'MajiLedgerDb' is not configured. " +
+                "Database connection string ('PropertyLedgerDb' or 'MajiLedgerDb') is not configured. " +
                 "Add it to appsettings.json or environment variables.");
 
         services.AddDbContext<MajiLedgerDbContext>(options =>

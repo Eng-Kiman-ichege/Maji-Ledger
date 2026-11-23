@@ -1,5 +1,6 @@
 using MajiLedger.Application.Features.QrCodes;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajiLedger.WebAPI.Controllers;
@@ -7,6 +8,7 @@ namespace MajiLedger.WebAPI.Controllers;
 [ApiController]
 [Route("api/v1/qr-codes")]
 [Produces("application/json")]
+[Authorize]
 public class QrCodesController(ISender sender) : ControllerBase
 {
     /// <summary>
@@ -29,6 +31,7 @@ public class QrCodesController(ISender sender) : ControllerBase
     /// <summary>
     /// Get registration details by public token.
     /// </summary>
+    [AllowAnonymous]
     [HttpGet("{publicToken}")]
     [ProducesResponseType(typeof(QrCodeRegistrationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

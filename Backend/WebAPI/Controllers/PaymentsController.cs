@@ -1,5 +1,6 @@
 using MajiLedger.Application.Features.Payments;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajiLedger.WebAPI.Controllers;
@@ -7,12 +8,14 @@ namespace MajiLedger.WebAPI.Controllers;
 [ApiController]
 [Route("api/v1/payments")]
 [Produces("application/json")]
+[Authorize]
 public class PaymentsController(ISender sender) : ControllerBase
 {
     /// <summary>
     /// Scan-to-Pay public landing page endpoint.
     /// Returns verified property, building, apartment, masked meter, and payment options for a QR token.
     /// </summary>
+    [AllowAnonymous]
     [HttpGet("scan/{publicToken}")]
     [ProducesResponseType(typeof(ScanToPayLandingDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -26,6 +29,7 @@ public class PaymentsController(ISender sender) : ControllerBase
     /// Initiates a payment from the customer Scan-to-Pay page.
     /// Triggers STK Push / mobile payment prompt.
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("initiate-qr")]
     [ProducesResponseType(typeof(PaymentInitiationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -39,6 +43,7 @@ public class PaymentsController(ISender sender) : ControllerBase
     /// <summary>
     /// Polls status of a payment attempt.
     /// </summary>
+    [AllowAnonymous]
     [HttpGet("attempts/{attemptId:guid}")]
     [ProducesResponseType(typeof(PaymentAttemptDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -86,6 +91,7 @@ public class PaymentsController(ISender sender) : ControllerBase
     /// <summary>
     /// Reconciles an incoming Paybill or USSD confirmed payment against the registered meter hierarchy.
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("paybill")]
     [HttpPost("c2b")]
     [ProducesResponseType(typeof(PaymentAttemptDto), StatusCodes.Status200OK)]
@@ -100,6 +106,7 @@ public class PaymentsController(ISender sender) : ControllerBase
     /// <summary>
     /// Webhook callback endpoint for mobile money payment confirmations (e.g., M-Pesa C2B / STK callback).
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("callback")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
