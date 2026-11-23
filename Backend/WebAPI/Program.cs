@@ -1,11 +1,15 @@
 using System.Text;
 using MajiLedger.Application;
+using MajiLedger.Application.Common.Security;
 using MajiLedger.Infrastructure.DependencyInjection;
+using MajiLedger.WebAPI.Authorization;
 using MajiLedger.WebAPI.Middleware;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,9 +33,10 @@ builder.Services.AddScoped<MajiLedger.Application.Common.Interfaces.ICurrentUser
 // 3.  Authentication & JWT
 // ────────────────────────────────────────────
 var secret = builder.Configuration["Jwt:Secret"] 
-             ?? "MajiLedgerSecureKey2026_SuperSecretKeyForJwtTokenGeneration_WaterMeteringSystem!";
-var issuer = builder.Configuration["Jwt:Issuer"] ?? "MajiLedger";
-var audience = builder.Configuration["Jwt:Audience"] ?? "MajiLedgerClients";
+             ?? builder.Configuration["JwtSettings:Secret"]
+             ?? "PropertyLedger_DefaultSecureDevelopmentSecretKey_MustBeAtLeast32BytesLong!";
+var issuer = builder.Configuration["Jwt:Issuer"] ?? builder.Configuration["JwtSettings:Issuer"] ?? "PropertyLedger";
+var audience = builder.Configuration["Jwt:Audience"] ?? builder.Configuration["JwtSettings:Audience"] ?? "PropertyLedgerClients";
 
 builder.Services.AddAuthentication(options =>
 {
@@ -56,7 +61,30 @@ builder.Services.AddAuthentication(options =>
 });
 
 // ────────────────────────────────────────────
-// 4.  API layer
+// 4.  Authorization & Policies
+// ────────────────────────────────────────────
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, ModuleAccessAuthorizationHandler>();
+
+builder.Services.AddAuthorization(options =>
+{
+    // Policies for Modules
+    options.AddPolicy($"Module:{AppModules.PropertyManagement}", policy =>
+        policy.Requirements.Add(new ModuleAccessRequirement(AppModules.PropertyManagement)));
+
+    options.AddPolicy($"Module:{AppModules.WaterLedger}", policy =>
+        policy.Requirements.Add(new ModuleAccessRequirement(AppModules.WaterLedger)));
+
+    options.AddPolicy($"Module:{AppModules.PlatformAdmin}", policy =>
+        policy.Requirements.Add(new ModuleAccessRequirement(AppModules.PlatformAdmin)));
+
+    // Policies for Roles
+    options.AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireLandlord", policy => policy.RequireRole("Admin", "Owner"));
+});
+
+// ────────────────────────────────────────────
+// 5.  API layer
 // ────────────────────────────────────────────
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -66,16 +94,41 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 
 // ────────────────────────────────────────────
-// 5.  Swagger / OpenAPI
+// 6.  Swagger / OpenAPI with JWT Bearer
 // ────────────────────────────────────────────
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title       = "Maji Ledger API",
+        Title       = "PropertyLedger API",
         Version     = "v1",
-        Description = "Prepaid water billing and property management platform with Role-Based Access.",
-        Contact     = new OpenApiContact { Name = "Maji Ledger" }
+        Description = "Unified Property Management and Water Ledger Platform API.",
+        Contact     = new OpenApiContact { Name = "PropertyLedger" }
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter JWT Bearer token: Bearer {your token}"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 

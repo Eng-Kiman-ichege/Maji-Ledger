@@ -3,10 +3,12 @@ namespace MajiLedger.Domain.Enums;
 // ─── Users & Authorization ────────────────────────────────────────────────────
 public enum UserRole
 {
-    Admin = 1,    // Platform-wide access
-    Owner = 2,    // Access to owned properties only
-    Manager = 3,  // Access to authorized properties
-    Staff = 4     // Limited access per PropertyAccess.AccessRole
+    Admin = 1,          // Platform Super Admin
+    Owner = 2,          // Property Owner / Landlord
+    Manager = 3,        // Property Manager
+    Staff = 4,          // Caretaker / Staff
+    FinanceOfficer = 5, // Finance Officer
+    Tenant = 6          // Tenant
 }
 
 public enum PropertyAccessRole

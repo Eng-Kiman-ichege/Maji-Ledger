@@ -16,7 +16,9 @@ public record UserDto(
     string PhoneNumber,
     UserRole Role,
     Guid? OwnerId,
-    List<Guid> AuthorizedPropertyIds);
+    List<Guid> AuthorizedPropertyIds,
+    List<string>? Permissions = null,
+    List<string>? Modules = null);
 
 public record LoginResultDto(
     string Token,
@@ -104,6 +106,8 @@ public class LoginHandler(
 
         var propList = authorizedPropertyIds.ToList();
         var token = jwtTokenService.GenerateToken(user, propList);
+        var permissions = MajiLedger.Application.Common.Security.RolePermissions.GetPermissionsForRole(user.Role).ToList();
+        var modules = MajiLedger.Application.Common.Security.RolePermissions.GetModulesForRole(user.Role).ToList();
 
         var userDto = new UserDto(
             user.Id,
@@ -112,7 +116,9 @@ public class LoginHandler(
             user.PhoneNumber,
             user.Role,
             user.OwnerId,
-            propList);
+            propList,
+            permissions,
+            modules);
 
         return new LoginResultDto(token, userDto);
     }
@@ -153,6 +159,9 @@ public class GetCurrentUserHandler(
             }
         }
 
+        var permissions = MajiLedger.Application.Common.Security.RolePermissions.GetPermissionsForRole(user.Role).ToList();
+        var modules = MajiLedger.Application.Common.Security.RolePermissions.GetModulesForRole(user.Role).ToList();
+
         return new UserDto(
             user.Id,
             user.Email,
@@ -160,7 +169,9 @@ public class GetCurrentUserHandler(
             user.PhoneNumber,
             user.Role,
             user.OwnerId,
-            authorizedPropertyIds.ToList());
+            authorizedPropertyIds.ToList(),
+            permissions,
+            modules);
     }
 }
 

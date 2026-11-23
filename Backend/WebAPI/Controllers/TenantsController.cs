@@ -1,5 +1,6 @@
 using MajiLedger.Application.Features.Tenants;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajiLedger.WebAPI.Controllers;
@@ -7,6 +8,7 @@ namespace MajiLedger.WebAPI.Controllers;
 [ApiController]
 [Route("api/v1/tenants")]
 [Produces("application/json")]
+[Authorize]
 public class TenantsController(ISender sender) : ControllerBase
 {
     [HttpGet]

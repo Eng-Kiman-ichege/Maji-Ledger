@@ -1,5 +1,6 @@
 using MajiLedger.Application.Features.PaymentConfigs;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajiLedger.WebAPI.Controllers;
@@ -7,6 +8,7 @@ namespace MajiLedger.WebAPI.Controllers;
 [ApiController]
 [Route("api/v1/payment-configs")]
 [Produces("application/json")]
+[Authorize(Roles = "Admin")]
 public class PaymentConfigsController(ISender sender) : ControllerBase
 {
     [HttpGet]

@@ -1,5 +1,6 @@
 using MajiLedger.Application.Features.Tokens;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajiLedger.WebAPI.Controllers;
@@ -7,6 +8,7 @@ namespace MajiLedger.WebAPI.Controllers;
 [ApiController]
 [Route("api/v1/tokens")]
 [Produces("application/json")]
+[Authorize]
 public class TokensController(ISender sender) : ControllerBase
 {
     [HttpGet("{id:guid}")]

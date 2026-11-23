@@ -1,5 +1,6 @@
 using MajiLedger.Application.Features.Auth;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajiLedger.WebAPI.Controllers;
@@ -11,6 +12,7 @@ public class AuthController(ISender sender) : ControllerBase
 {
     public record LoginRequest(string Email, string Password);
 
+    [AllowAnonymous]
     [HttpPost("login")]
     [ProducesResponseType(typeof(LoginResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -20,6 +22,7 @@ public class AuthController(ISender sender) : ControllerBase
         return Ok(result);
     }
 
+    [Authorize]
     [HttpGet("me")]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -30,6 +33,7 @@ public class AuthController(ISender sender) : ControllerBase
         return Ok(user);
     }
 
+    [AllowAnonymous]
     [HttpPost("seed-admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedAdmin(CancellationToken ct)
@@ -38,6 +42,7 @@ public class AuthController(ISender sender) : ControllerBase
         return Ok(new { message = "Default administrator verified / created." });
     }
 
+    [AllowAnonymous]
     [HttpPost("seed-demo")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedDemo(CancellationToken ct)

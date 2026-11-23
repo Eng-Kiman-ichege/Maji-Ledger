@@ -1,6 +1,7 @@
 using MajiLedger.Application.Features.Dashboard;
 using MajiLedger.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajiLedger.WebAPI.Controllers;
@@ -8,12 +9,14 @@ namespace MajiLedger.WebAPI.Controllers;
 [ApiController]
 [Route("api/v1/dashboard")]
 [Produces("application/json")]
+[Authorize]
 public class DashboardController(ISender sender) : ControllerBase
 {
     /// <summary>
     /// Portfolio-level administrator dashboard metrics, collections, token sales, and property summaries.
     /// </summary>
     [HttpGet("admin")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(AdminDashboardDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAdminDashboard(
         [FromQuery] DateTime? from = null,

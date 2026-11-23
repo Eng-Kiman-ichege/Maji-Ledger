@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajiLedger.WebAPI.Controllers;
@@ -7,6 +8,7 @@ namespace MajiLedger.WebAPI.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous]
 public class HealthController : ControllerBase
 {
     /// <summary>Returns a simple liveness response confirming the API is running.</summary>
@@ -17,7 +19,7 @@ public class HealthController : ControllerBase
         return Ok(new
         {
             status  = "healthy",
-            service = "Maji Ledger API",
+            service = "PropertyLedger API",
             version = "1.0.0",
             utc     = DateTime.UtcNow
         });

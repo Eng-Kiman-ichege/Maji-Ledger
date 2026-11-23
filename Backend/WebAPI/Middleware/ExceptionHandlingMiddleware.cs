@@ -60,6 +60,13 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
                 problemDetails.Detail = ex.Message;
                 break;
 
+            case UnauthorizedAccessException ex:
+                response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                problemDetails.Status = response.StatusCode;
+                problemDetails.Title = "Unauthorized";
+                problemDetails.Detail = ex.Message;
+                break;
+
             default:
                 logger.LogError(exception, "Unhandled exception occurred: {Message}", exception.Message);
                 response.StatusCode = (int)HttpStatusCode.InternalServerError;

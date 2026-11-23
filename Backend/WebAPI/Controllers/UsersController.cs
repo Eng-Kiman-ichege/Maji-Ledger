@@ -1,6 +1,7 @@
 using MajiLedger.Application.Features.Auth;
 using MajiLedger.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajiLedger.WebAPI.Controllers;
@@ -8,6 +9,7 @@ namespace MajiLedger.WebAPI.Controllers;
 [ApiController]
 [Route("api/v1/users")]
 [Produces("application/json")]
+[Authorize(Roles = "Admin")]
 public class UsersController(ISender sender) : ControllerBase
 {
     public record CreateUserRequest(
