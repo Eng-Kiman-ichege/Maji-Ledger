@@ -51,11 +51,11 @@ public class AuthenticationAndAuthorizationWorkflowTests
             var passwordHash = hasher.HashPassword(rawPassword);
 
             var user = ApplicationUser.Create(
-                "john.owner@propertyledger.com",
-                passwordHash,
-                "John Owner",
-                "+254700112233",
-                UserRole.Owner,
+                email: "john.owner@propertyledger.com",
+                phoneNumber: "+254700112233",
+                fullName: "John Owner",
+                passwordHash: passwordHash,
+                role: UserRole.Owner,
                 ownerId: Guid.NewGuid());
 
             db.ApplicationUsers.Add(user);
@@ -96,11 +96,11 @@ public class AuthenticationAndAuthorizationWorkflowTests
         using (var db = CreateDbContext(dbName))
         {
             var user = ApplicationUser.Create(
-                "user@propertyledger.com",
-                hasher.HashPassword("CorrectPassword!"),
-                "User Name",
-                "+254711223344",
-                UserRole.Manager);
+                email: "user@propertyledger.com",
+                phoneNumber: "+254711223344",
+                fullName: "User Name",
+                passwordHash: hasher.HashPassword("CorrectPassword!"),
+                role: UserRole.Manager);
 
             db.ApplicationUsers.Add(user);
             await db.SaveChangesAsync();
