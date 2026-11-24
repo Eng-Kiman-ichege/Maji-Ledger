@@ -99,7 +99,7 @@ export default function WaterDashboardPage() {
     }
   };
 
-  const totalMeters = (data?.activeMeters || 0) + (data?.inactiveMeters || 0);
+  const totalMeters = data?.totalMeters || 0;
   const meterHealthPct = totalMeters > 0 ? Math.round(((data?.activeMeters || 0) / totalMeters) * 100) : 0;
   const base = data?.totalRevenue || 0;
   const trendVals = [0.5, 0.65, 0.73, 0.82, 0.91, 1.0].map(m => Math.round(base * m));
@@ -171,8 +171,8 @@ export default function WaterDashboardPage() {
             { label:"Total Revenue", value: formatKes(data?.totalRevenue || 0), icon:"💰" },
             { label:"Units Purchased", value: `${Number(data?.totalUnitsSold || 0).toFixed(0)} m³`, icon:"📦" },
             { label:"Active Meters", value: data?.activeMeters || 0, icon:"⚡" },
-            { label:"Failed Transactions", value: data?.failedTransactions || 0, icon:"⚠️" },
-            { label:"Pending Tokens", value: data?.pendingTokenGeneration || 0, icon:"🔑" },
+            { label:"Failed Payments", value: data?.failedPayments || 0, icon:"⚠️" },
+            { label:"Pending Tokens", value: data?.pendingTokens || 0, icon:"🔑" },
           ].map(s => (
             <div key={s.label} style={{ background:"rgba(255,255,255,0.1)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:12, padding:"10px 16px", display:"flex", flexDirection:"column", gap:2, minWidth:120 }}>
               <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"rgba(255,255,255,0.6)" }}>{s.icon} {s.label}</span>
@@ -230,8 +230,8 @@ export default function WaterDashboardPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
             {[
               { label:"Active", value: data?.activeMeters || 0, color:"#059669", bg:"#f0fdf4" },
-              { label:"Inactive", value: data?.inactiveMeters || 0, color:"#64748b", bg:"#f8fafc" },
-              { label:"Faulty", value: data?.faultyMeters || 0, color:"#dc2626", bg:"#fff1f2" },
+              { label:"Inactive", value: totalMeters - (data?.activeMeters || 0), color:"#64748b", bg:"#f8fafc" },
+              { label:"Pending", value: data?.pendingTokens || 0, color:"#dc2626", bg:"#fff1f2" },
             ].map(s => (
               <div key={s.label} style={{ background:s.bg, borderRadius:8, padding:"8px 10px", textAlign:"center" }}>
                 <div style={{ fontSize:16, fontWeight:900, color:s.color }}>{s.value}</div>
@@ -245,27 +245,27 @@ export default function WaterDashboardPage() {
         </div>
 
         {/* Transaction Status */}
-        <div style={{ background:"#fff", borderRadius:16, padding:24, border:`1px solid ${(data?.failedTransactions || 0) > 0 ? "#fecaca" : "#e2e8f0"}`, boxShadow:"0 2px 12px -4px rgba(0,0,0,0.08)" }}>
+        <div style={{ background:"#fff", borderRadius:16, padding:24, border:`1px solid ${(data?.failedPayments || 0) > 0 ? "#fecaca" : "#e2e8f0"}`, boxShadow:"0 2px 12px -4px rgba(0,0,0,0.08)" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
             <div>
-              <div style={{ fontSize:11, fontWeight:700, color:(data?.failedTransactions || 0) > 0 ? "#dc2626" : "#059669", textTransform:"uppercase", letterSpacing:"0.07em" }}>
+              <div style={{ fontSize:11, fontWeight:700, color:(data?.failedPayments || 0) > 0 ? "#dc2626" : "#059669", textTransform:"uppercase", letterSpacing:"0.07em" }}>
                 Transaction Health
               </div>
-              <div style={{ fontSize:32, fontWeight:900, color:(data?.failedTransactions || 0) > 0 ? "#dc2626" : "#0f172a", lineHeight:1.1, marginTop:4 }}>
-                {data?.failedTransactions || 0}
+              <div style={{ fontSize:32, fontWeight:900, color:(data?.failedPayments || 0) > 0 ? "#dc2626" : "#0f172a", lineHeight:1.1, marginTop:4 }}>
+                {data?.failedPayments || 0}
               </div>
               <div style={{ fontSize:12, color:"#64748b", marginTop:2 }}>
-                {(data?.failedTransactions || 0) > 0 ? "failed transactions need attention" : "No failed transactions"}
+                {(data?.failedPayments || 0) > 0 ? "failed transactions need attention" : "No failed transactions"}
               </div>
             </div>
-            <div style={{ background:(data?.failedTransactions || 0) > 0 ? "linear-gradient(135deg,#fff1f2,#ffe4e6)" : "linear-gradient(135deg,#f0fdf4,#dcfce7)", borderRadius:12, padding:"10px 12px", border:`1px solid ${(data?.failedTransactions || 0) > 0 ? "#fecaca" : "#bbf7d0"}` }}>
-              {(data?.failedTransactions || 0) > 0 ? <AlertTriangle size={22} color="#dc2626" /> : <CheckCircle2 size={22} color="#059669" />}
+            <div style={{ background:(data?.failedPayments || 0) > 0 ? "linear-gradient(135deg,#fff1f2,#ffe4e6)" : "linear-gradient(135deg,#f0fdf4,#dcfce7)", borderRadius:12, padding:"10px 12px", border:`1px solid ${(data?.failedPayments || 0) > 0 ? "#fecaca" : "#bbf7d0"}` }}>
+              {(data?.failedPayments || 0) > 0 ? <AlertTriangle size={22} color="#dc2626" /> : <CheckCircle2 size={22} color="#059669" />}
             </div>
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {[
-              { label:"Pending Token Generation", value: data?.pendingTokenGeneration || 0, color:"#d97706", bg:"#fffbeb" },
-              { label:"Failed Transactions", value: data?.failedTransactions || 0, color:"#dc2626", bg:"#fff1f2" },
+              { label:"Pending Token Generation", value: data?.pendingTokens || 0, color:"#d97706", bg:"#fffbeb" },
+              { label:"Failed Transactions", value: data?.failedPayments || 0, color:"#dc2626", bg:"#fff1f2" },
             ].map(s => (
               <div key={s.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", background:s.bg, borderRadius:8, padding:"8px 12px" }}>
                 <span style={{ fontSize:12, color:"#64748b" }}>{s.label}</span>
@@ -337,7 +337,7 @@ export default function WaterDashboardPage() {
                         </div>
                       </td>
                       <td style={{ padding:"14px 16px" }}>
-                        <span style={{ fontSize:14, fontWeight:700, color:"#059669" }}>{p.activeMeters || 0}</span>
+                        <span style={{ fontSize:14, fontWeight:700, color:"#059669" }}>{p.meterCount || 0}</span>
                       </td>
                       <td style={{ padding:"14px 16px", fontWeight:700, color:"#059669", fontSize:14 }}>
                         {formatKes(p.revenue || 0)}

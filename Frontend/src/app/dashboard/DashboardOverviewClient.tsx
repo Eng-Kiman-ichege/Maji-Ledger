@@ -361,7 +361,7 @@ export default function DashboardOverviewClient() {
             </div>
           </div>
           <div style={{ background:(rentData?.outstandingBalance || 0) > 0 ? "#fee2e2" : "#dcfce7", borderRadius:8, padding:"8px 12px", fontSize:12, color:(rentData?.outstandingBalance || 0) > 0 ? "#991b1b" : "#166534", fontWeight:600 }}>
-            {(rentData?.outstandingBalance || 0) > 0 ? `⚠ ${rentData?.tenantsInArrears || 0} tenants with arrears` : "✓ All accounts settled"}
+            {(rentData?.outstandingBalance || 0) > 0 ? `⚠ ${rentData?.tenanciesInArrears || 0} tenancies with arrears` : "✓ All accounts settled"}
           </div>
           <Link href="/dashboard/rent/arrears" style={{ display:"flex", alignItems:"center", gap:4, fontSize:12, fontWeight:600, color:"#ea580c", textDecoration:"none", marginTop:10 }}>
             Arrears Report <ArrowUpRight size={13} />
@@ -437,8 +437,8 @@ export default function DashboardOverviewClient() {
                 </td></tr>
               ) : filteredProperties.map((p, idx) => {
                 const name = p.propertyName || p.name || "Unnamed";
-                const total = p.totalApartments || p.apartmentCount || 0;
-                const occupied = p.occupiedApartments || p.occupiedUnits || 0;
+                const total = p.buildingCount || 0;
+                const occupied = 0;
                 const pct = total > 0 ? Math.round((occupied / total) * 100) : 0;
                 const colors = ["#6366f1","#0284c7","#059669","#d97706","#dc2626","#7c3aed"];
                 const col = colors[idx % colors.length];
@@ -454,7 +454,7 @@ export default function DashboardOverviewClient() {
                         </div>
                         <div>
                           <div style={{ fontWeight:700, fontSize:14, color:"#0f172a" }}>{name}</div>
-                          {p.propertyCode && <div style={{ fontSize:11, color:"#94a3b8", fontFamily:"monospace" }}>{p.propertyCode}</div>}
+                          {p.name && <div style={{ fontSize:11, color:"#94a3b8", fontFamily:"monospace" }}>{p.name}</div>}
                         </div>
                       </div>
                     </td>
@@ -480,7 +480,7 @@ export default function DashboardOverviewClient() {
                     </td>
                     <td style={{ padding:"14px 16px" }}>
                       <span style={{ fontSize:11, fontWeight:700, padding:"4px 8px", borderRadius:6, background:"#f1f5f9", color:"#475569", textTransform:"capitalize" }}>
-                        {p.propertyType || p.type || "Residential"}
+                        {p.type || "Residential"}
                       </span>
                     </td>
                     <td style={{ padding:"14px 16px" }}>
@@ -535,7 +535,7 @@ export default function DashboardOverviewClient() {
                       {pay.propertyName || "—"}
                     </td>
                     <td style={{ padding:"12px 16px", fontSize:13, fontWeight:700, color:"#059669" }}>
-                      {formatKesFull(pay.amountPaid || pay.amount || 0)}
+                      {formatKesFull(pay.amount || 0)}
                     </td>
                     <td style={{ padding:"12px 16px" }}>
                       <span style={{ fontSize:11, padding:"3px 8px", borderRadius:5, background:"#f0f9ff", color:"#0369a1", fontWeight:700, textTransform:"capitalize" }}>
