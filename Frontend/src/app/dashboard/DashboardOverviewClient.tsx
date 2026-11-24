@@ -183,8 +183,8 @@ export default function DashboardOverviewClient() {
       ? Math.round((rentData.collectedThisMonth / rentData.totalRentRoll) * 100)
       : 0;
 
-  const totalUnits = properties.reduce((s, p) => s + (p.totalApartments || p.apartmentCount || 0), 0);
-  const occupiedUnits = properties.reduce((s, p) => s + (p.occupiedApartments || p.occupiedUnits || 0), 0);
+  const totalUnits = properties.reduce((s, p) => s + (p.buildingCount || 0), 0);
+  const occupiedUnits = 0; // PropertyDto doesn't expose occupied count directly
   const occupancyPct = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
 
   // Fake monthly bar data (last 6 months trend) based on collected
