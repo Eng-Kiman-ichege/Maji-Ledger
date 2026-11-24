@@ -14,6 +14,7 @@ public class Owner : AuditableEntity
     public string? Email { get; private set; }
     public string? NationalId { get; private set; }
     public string? KraPin { get; private set; }
+    public string? Address { get; private set; }
     public bool IsActive { get; private set; } = true;
 
     // Navigation
@@ -28,6 +29,7 @@ public class Owner : AuditableEntity
         string? email = null,
         string? nationalId = null,
         string? kraPin = null,
+        string? address = null,
         string? createdBy = null)
     {
         return new Owner
@@ -37,9 +39,24 @@ public class Owner : AuditableEntity
             Email = email,
             NationalId = nationalId,
             KraPin = kraPin,
+            Address = address,
             CreatedBy = createdBy
         };
     }
 
     public void Deactivate(string updatedBy) { IsActive = false; UpdatedBy = updatedBy; MarkUpdated(); }
+
+    public void Activate(string updatedBy) { IsActive = true; UpdatedBy = updatedBy; MarkUpdated(); }
+
+    public void Update(string fullName, string phoneNumber, string? email, string? nationalId, string? kraPin, string? address, string updatedBy)
+    {
+        FullName = fullName;
+        PhoneNumber = phoneNumber;
+        Email = email;
+        NationalId = nationalId;
+        KraPin = kraPin;
+        Address = address;
+        UpdatedBy = updatedBy;
+        MarkUpdated();
+    }
 }

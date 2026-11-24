@@ -10,6 +10,7 @@ namespace MajiLedger.Domain.Entities;
 public class Property : AuditableEntity
 {
     public string Name { get; private set; } = default!;
+    public string? PropertyCode { get; private set; }   // Unique short code, e.g. "PROP-001"
     public string? Description { get; private set; }
     public PropertyType Type { get; private set; }
     public string? PhysicalAddress { get; private set; }
@@ -35,6 +36,7 @@ public class Property : AuditableEntity
         string? town = null,
         string? postalCode = null,
         string? description = null,
+        string? propertyCode = null,
         string? createdBy = null)
     {
         return new Property
@@ -46,6 +48,7 @@ public class Property : AuditableEntity
             Town = town,
             PostalCode = postalCode,
             Description = description,
+            PropertyCode = propertyCode,
             CreatedBy = createdBy
         };
     }
@@ -76,5 +79,19 @@ public class Property : AuditableEntity
         IsActive = false;
         UpdatedBy = updatedBy;
         SoftDelete(updatedBy);
+    }
+
+    public void Activate(string updatedBy)
+    {
+        IsActive = true;
+        UpdatedBy = updatedBy;
+        MarkUpdated();
+    }
+
+    public void SetPropertyCode(string code, string updatedBy)
+    {
+        PropertyCode = code;
+        UpdatedBy = updatedBy;
+        MarkUpdated();
     }
 }
