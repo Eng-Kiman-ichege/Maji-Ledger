@@ -136,160 +136,277 @@ export default function WaterTransactionsPage() {
     );
   });
 
+  const totalRevenue = filtered.reduce((acc, t) => acc + (t.amount || 0), 0);
+  const totalVolume = filtered.reduce((acc, t) => acc + (t.unitsPurchased || 0), 0);
+  const confirmedCount = filtered.filter((t) => t.paymentStatus === "Confirmed").length;
+  const pendingTokensCount = filtered.filter((t) => t.tokenStatus === "Pending").length;
+  const failedTxCount = filtered.filter((t) => t.paymentStatus === "Failed").length;
+
   return (
-    <div style={{ padding: "28px 32px", maxWidth: 1400, margin: "0 auto" }}>
-      {/* Header */}
+    <div style={{ padding: "28px 32px", maxWidth: 1440, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24, paddingBottom: 40 }}>
+      {/* ── HERO BANNER ── */}
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: 24,
-          flexWrap: "wrap",
-          gap: 16,
+          background: "linear-gradient(135deg, #082f49 0%, #0c4a6e 35%, #0284c7 70%, #0ea5e9 100%)",
+          borderRadius: 20,
+          padding: "32px 36px",
+          position: "relative",
+          overflow: "hidden",
+          color: "#ffffff",
+          boxShadow: "0 10px 30px -10px rgba(2, 132, 199, 0.4)",
         }}
       >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <span
+        <div style={{ position: "absolute", right: -50, top: -50, width: 220, height: 220, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", right: 80, bottom: -60, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.08)", pointerEvents: "none" }} />
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, position: "relative" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                💧 Maji Ledger
+              </div>
+              <div style={{ background: "rgba(14,165,233,0.5)", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 800, border: "1px solid rgba(255,255,255,0.2)" }}>
+                Prepaid Water Transactions
+              </div>
+            </div>
+            <h1 style={{ fontSize: "clamp(22px, 3vw, 30px)", fontWeight: 900, margin: "0 0 6px", letterSpacing: "-0.5px" }}>
+              Prepaid Vending & Purchases Ledger
+            </h1>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", margin: 0 }}>
+              Authoritative transaction records, M-Pesa mobile money receipts, STS tokens, and volume telemetry.
+            </p>
+          </div>
+        </div>
+
+        {/* Quick stat pills */}
+        <div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap", position: "relative" }}>
+          {[
+            { label: "Total Water Revenue", value: formatKes(totalRevenue), icon: "💰" },
+            { label: "Total Volume Sold", value: `${totalVolume.toFixed(1)} m³`, icon: "📦" },
+            { label: "Confirmed Orders", value: confirmedCount, icon: "✅" },
+            { label: "Pending Tokens", value: pendingTokensCount, icon: "🔑" },
+            { label: "Failed Payments", value: failedTxCount, icon: "⚠️" },
+          ].map((s) => (
+            <div
+              key={s.label}
               style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: "#0284c7",
-                background: "#f0f9ff",
-                padding: "3px 8px",
-                borderRadius: 4,
-                border: "1px solid #bae6fd",
-                textTransform: "uppercase",
+                background: "rgba(255,255,255,0.1)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: 12,
+                padding: "8px 16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                minWidth: 120,
               }}
             >
-              Water Ledger
-            </span>
-          </div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", margin: 0 }}>
-            Water Transactions Ledger
-          </h1>
-          <p style={{ fontSize: 14, color: "#64748b", margin: "4px 0 0" }}>
-            Authoritative prepaid water purchase ledger separated from rent accounts
-          </p>
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)" }}>
+                {s.icon} {s.label}
+              </span>
+              <span style={{ fontSize: 20, fontWeight: 900, lineHeight: 1.2 }}>{s.value}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Filter / Search Bar */}
+      {/* ── KPI CARDS ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
+        <div style={{ background: "#ffffff", borderRadius: 16, padding: 22, border: "1px solid #e2e8f0", boxShadow: "0 4px 18px -4px rgba(0,0,0,0.06)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#0284c7", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                Vended Revenue
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", lineHeight: 1.1, marginTop: 4 }}>
+                {formatKes(totalRevenue)}
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                {confirmedCount} confirmed M-Pesa purchases
+              </div>
+            </div>
+            <div style={{ background: "#e0f2fe", borderRadius: 12, padding: "10px 12px", border: "1px solid #bae6fd" }}>
+              <CreditCard size={22} color="#0284c7" />
+            </div>
+          </div>
+          <div style={{ background: "#f0fdf4", borderRadius: 8, padding: "8px 12px", fontSize: 12, color: "#166534", fontWeight: 600 }}>
+            Avg Ticket: {confirmedCount > 0 ? formatKes(Math.round(totalRevenue / confirmedCount)) : "KES 0"} per order
+          </div>
+        </div>
+
+        <div style={{ background: "#ffffff", borderRadius: 16, padding: 22, border: "1px solid #e2e8f0", boxShadow: "0 4px 18px -4px rgba(0,0,0,0.06)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#059669", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                Volume Telemetry
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", lineHeight: 1.1, marginTop: 4 }}>
+                {totalVolume.toFixed(2)} <span style={{ fontSize: 16, color: "#64748b" }}>m³</span>
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                Dispatched to smart prepaid meters
+              </div>
+            </div>
+            <div style={{ background: "#ecfdf5", borderRadius: 12, padding: "10px 12px", border: "1px solid #a7f3d0" }}>
+              <CheckCircle2 size={22} color="#059669" />
+            </div>
+          </div>
+          <div style={{ background: "#f8fafc", borderRadius: 8, padding: "8px 12px", fontSize: 12, color: "#334155", fontWeight: 600 }}>
+            {((totalVolume * 1000)).toLocaleString()} Liters of water purchased
+          </div>
+        </div>
+
+        <div style={{ background: "#ffffff", borderRadius: 16, padding: 22, border: `1px solid ${pendingTokensCount > 0 ? "#fed7aa" : "#e2e8f0"}`, boxShadow: "0 4px 18px -4px rgba(0,0,0,0.06)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: pendingTokensCount > 0 ? "#d97706" : "#059669", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                Token Vending Queue
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: pendingTokensCount > 0 ? "#d97706" : "#0f172a", lineHeight: 1.1, marginTop: 4 }}>
+                {pendingTokensCount} <span style={{ fontSize: 16, color: "#64748b" }}>Pending</span>
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                {pendingTokensCount > 0 ? "Awaiting STS token generation / SMS" : "All confirmed tokens generated & delivered"}
+              </div>
+            </div>
+            <div style={{ background: pendingTokensCount > 0 ? "#fffbeb" : "#f0fdf4", borderRadius: 12, padding: "10px 12px", border: `1px solid ${pendingTokensCount > 0 ? "#fde68a" : "#bbf7d0"}` }}>
+              {pendingTokensCount > 0 ? <Clock size={22} color="#d97706" /> : <CheckCircle2 size={22} color="#059669" />}
+            </div>
+          </div>
+          <div style={{ background: pendingTokensCount > 0 ? "#fffbeb" : "#f0fdf4", borderRadius: 8, padding: "8px 12px", fontSize: 12, color: pendingTokensCount > 0 ? "#b45309" : "#166534", fontWeight: 600 }}>
+            {pendingTokensCount > 0 ? "Action required in token queue" : "0 pending deliveries in queue"}
+          </div>
+        </div>
+      </div>
+
+      {/* ── FILTER & SEARCH BAR ── */}
       <div
         style={{
-          background: "#fff",
-          padding: 16,
-          borderRadius: 12,
+          background: "#ffffff",
+          borderRadius: 14,
+          padding: "16px 20px",
           border: "1px solid #e2e8f0",
-          marginBottom: 20,
+          boxShadow: "0 2px 10px -2px rgba(0,0,0,0.04)",
           display: "flex",
           gap: 12,
           flexWrap: "wrap",
           alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
-        <div style={{ position: "relative", flex: 1, minWidth: 260 }}>
-          <Search
-            size={16}
-            style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }}
-          />
-          <input
-            type="text"
-            placeholder="Search reference, M-Pesa code, meter, phone, or tenant..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", flex: 1 }}>
+          <div style={{ position: "relative", flex: 1, minWidth: 260 }}>
+            <Search
+              size={15}
+              style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }}
+            />
+            <input
+              type="text"
+              placeholder="Search reference, M-Pesa code, meter, phone, or tenant..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "9px 14px 9px 36px",
+                borderRadius: 8,
+                border: "1.5px solid #e2e8f0",
+                fontSize: 13,
+                outline: "none",
+                background: "#f8fafc",
+                color: "#0f172a",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+
+          <select
+            value={paymentStatusFilter}
+            onChange={(e) => setPaymentStatusFilter(e.target.value)}
             style={{
-              width: "100%",
-              padding: "9px 12px 9px 36px",
+              padding: "8px 12px",
               borderRadius: 8,
-              border: "1px solid #cbd5e1",
-              fontSize: 14,
+              border: "1.5px solid #e2e8f0",
+              fontSize: 13,
               outline: "none",
+              background: "#f8fafc",
+              color: "#0f172a",
+              cursor: "pointer",
             }}
-          />
+          >
+            <option value="">All Payment Statuses</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Pending">Pending</option>
+            <option value="Failed">Failed</option>
+            <option value="Reversed">Reversed</option>
+          </select>
+
+          <select
+            value={tokenStatusFilter}
+            onChange={(e) => setTokenStatusFilter(e.target.value)}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              border: "1.5px solid #e2e8f0",
+              fontSize: 13,
+              outline: "none",
+              background: "#f8fafc",
+              color: "#0f172a",
+              cursor: "pointer",
+            }}
+          >
+            <option value="">All Token Statuses</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Generated">Generated</option>
+            <option value="Pending">Pending</option>
+            <option value="Failed">Failed</option>
+            <option value="NotRequired">Not Required</option>
+          </select>
+
+          <select
+            value={propertyFilter}
+            onChange={(e) => setPropertyFilter(e.target.value)}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              border: "1.5px solid #e2e8f0",
+              fontSize: 13,
+              outline: "none",
+              background: "#f8fafc",
+              color: "#0f172a",
+              cursor: "pointer",
+            }}
+          >
+            <option value="">All Properties ({properties.length})</option>
+            {properties.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.propertyName || p.name}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={loadTransactions}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 14px",
+              background: "#f8fafc",
+              border: "1.5px solid #e2e8f0",
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              color: "#475569",
+            }}
+          >
+            <RefreshCw size={13} /> Refresh
+          </button>
         </div>
 
-        <select
-          value={paymentStatusFilter}
-          onChange={(e) => setPaymentStatusFilter(e.target.value)}
-          style={{
-            padding: "9px 12px",
-            borderRadius: 8,
-            border: "1px solid #cbd5e1",
-            fontSize: 14,
-            outline: "none",
-            background: "#fff",
-            color: "#334155",
-          }}
-        >
-          <option value="">All Payment Statuses</option>
-          <option value="Confirmed">Confirmed</option>
-          <option value="Pending">Pending</option>
-          <option value="Failed">Failed</option>
-          <option value="Reversed">Reversed</option>
-        </select>
-
-        <select
-          value={tokenStatusFilter}
-          onChange={(e) => setTokenStatusFilter(e.target.value)}
-          style={{
-            padding: "9px 12px",
-            borderRadius: 8,
-            border: "1px solid #cbd5e1",
-            fontSize: 14,
-            outline: "none",
-            background: "#fff",
-            color: "#334155",
-          }}
-        >
-          <option value="">All Token Statuses</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Generated">Generated</option>
-          <option value="Pending">Pending</option>
-          <option value="Failed">Failed</option>
-          <option value="NotRequired">Not Required</option>
-        </select>
-
-        <select
-          value={propertyFilter}
-          onChange={(e) => setPropertyFilter(e.target.value)}
-          style={{
-            padding: "9px 12px",
-            borderRadius: 8,
-            border: "1px solid #cbd5e1",
-            fontSize: 14,
-            outline: "none",
-            background: "#fff",
-            color: "#334155",
-          }}
-        >
-          <option value="">All Properties</option>
-          {properties.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.propertyName || p.name}
-            </option>
-          ))}
-        </select>
-
-        <button
-          onClick={loadTransactions}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "9px 14px",
-            background: "#f8fafc",
-            border: "1px solid #cbd5e1",
-            borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 500,
-            cursor: "pointer",
-            color: "#475569",
-          }}
-        >
-          <RefreshCw size={14} /> Refresh
-        </button>
+        <div style={{ fontSize: 13, color: "#64748b", fontWeight: 600 }}>
+          Showing <span style={{ color: "#0f172a", fontWeight: 800 }}>{filtered.length}</span> records
+        </div>
       </div>
 
       {/* Table */}

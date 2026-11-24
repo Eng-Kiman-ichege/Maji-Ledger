@@ -41,6 +41,27 @@ const STATUS_CONFIG: Record<
   UnderMaintenance: { label: "Maintenance", color: "#0284c7", bg: "#f0f9ff", border: "#bae6fd" },
 };
 
+function DonutChart({ pct, color = "#0284c7", size = 76 }: { pct: number; color?: string; size?: number }) {
+  const r = (size - 14) / 2;
+  const circ = 2 * Math.PI * r;
+  const fill = Math.min(pct / 100, 1) * circ;
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e0f2fe" strokeWidth={10} />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth={10}
+        strokeDasharray={`${fill} ${circ - fill}`}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default function WaterMetersPage() {
   const [meters, setMeters] = useState<WaterMeterDto[]>([]);
   const [properties, setProperties] = useState<PropertyDto[]>([]);
@@ -203,299 +224,287 @@ export default function WaterMetersPage() {
     (m) => m.status === "Faulty" || m.status === "UnderMaintenance"
   ).length;
 
+  const healthPct = totalMeters > 0 ? Math.round((activeMeters / totalMeters) * 100) : 0;
+
   return (
-    <div style={{ padding: "28px 32px", maxWidth: 1400, margin: "0 auto" }}>
-      {/* Header */}
+    <div style={{ padding: "28px 32px", maxWidth: 1440, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24, paddingBottom: 40 }}>
+      {/* ── HERO BANNER ── */}
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: 24,
-          flexWrap: "wrap",
-          gap: 16,
+          background: "linear-gradient(135deg, #082f49 0%, #0c4a6e 35%, #0284c7 70%, #0ea5e9 100%)",
+          borderRadius: 20,
+          padding: "32px 36px",
+          position: "relative",
+          overflow: "hidden",
+          color: "#ffffff",
+          boxShadow: "0 10px 30px -10px rgba(2, 132, 199, 0.4)",
         }}
       >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <span
+        <div style={{ position: "absolute", right: -50, top: -50, width: 220, height: 220, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", right: 80, bottom: -60, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.08)", pointerEvents: "none" }} />
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, position: "relative" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                💧 Maji Ledger
+              </div>
+              <div style={{ background: "rgba(14,165,233,0.5)", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 800, border: "1px solid rgba(255,255,255,0.2)" }}>
+                Meters Registry & Telemetry
+              </div>
+            </div>
+            <h1 style={{ fontSize: "clamp(22px, 3vw, 30px)", fontWeight: 900, margin: "0 0 6px", letterSpacing: "-0.5px" }}>
+              Water Meters Fleet
+            </h1>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", margin: 0 }}>
+              IEC 62055-41 STS prepaid meters, apartment unit assignments, QR codes, and hardware telemetry.
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              setActionError("");
+              setShowRegisterModal(true);
+            }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 18px",
+              background: "#ffffff",
+              color: "#0369a1",
+              borderRadius: 10,
+              fontSize: 13,
+              fontWeight: 800,
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+            }}
+          >
+            <Plus size={16} /> Register Water Meter
+          </button>
+        </div>
+
+        {/* Quick stat pills */}
+        <div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap", position: "relative" }}>
+          {[
+            { label: "Total Fleet", value: totalMeters, icon: "⚡" },
+            { label: "Active Online", value: activeMeters, icon: "✅" },
+            { label: "STS Prepaid", value: prepaidCount, icon: "🔑" },
+            { label: "Maintenance / Fault", value: faultyCount, icon: "🔧" },
+            { label: "Fleet Health", value: `${healthPct}%`, icon: "📈" },
+          ].map((s) => (
+            <div
+              key={s.label}
               style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: "#0284c7",
-                background: "#f0f9ff",
-                padding: "3px 8px",
-                borderRadius: 4,
-                border: "1px solid #bae6fd",
-                textTransform: "uppercase",
+                background: "rgba(255,255,255,0.1)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: 12,
+                padding: "8px 16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                minWidth: 120,
               }}
             >
-              Water Ledger
-            </span>
-          </div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0f172a", margin: 0 }}>
-            Water Meters Fleet
-          </h1>
-          <p style={{ fontSize: 14, color: "#64748b", margin: "4px 0 0" }}>
-            Register, assign to apartments, transfer, and monitor water meters across all properties
-          </p>
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)" }}>
+                {s.icon} {s.label}
+              </span>
+              <span style={{ fontSize: 20, fontWeight: 900, lineHeight: 1.2 }}>{s.value}</span>
+            </div>
+          ))}
         </div>
-
-        <button
-          onClick={() => {
-            setActionError("");
-            setShowRegisterModal(true);
-          }}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "10px 18px",
-            background: "#0284c7",
-            color: "#fff",
-            borderRadius: 8,
-            fontWeight: 600,
-            fontSize: 14,
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 1px 2px rgba(2, 132, 199, 0.2)",
-          }}
-        >
-          <Plus size={16} />
-          Register Meter
-        </button>
       </div>
 
-      {/* KPI Cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 16,
-          marginBottom: 24,
-        }}
-      >
-        <div
-          style={{
-            background: "#fff",
-            padding: "16px 20px",
-            borderRadius: 12,
-            border: "1px solid #e2e8f0",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 10,
-              background: "#f0f9ff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#0284c7",
-            }}
-          >
-            <Gauge size={22} />
+      {/* ── KPI CARDS ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
+        {/* Fleet Online Donut */}
+        <div style={{ background: "#ffffff", borderRadius: 16, padding: 22, border: "1px solid #e2e8f0", boxShadow: "0 4px 18px -4px rgba(0,0,0,0.06)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#0284c7", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                Fleet Online Health
+              </div>
+              <div style={{ fontSize: 32, fontWeight: 900, color: "#0f172a", lineHeight: 1.1, marginTop: 4 }}>
+                {healthPct}<span style={{ fontSize: 18, color: "#64748b" }}>%</span>
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
+                {activeMeters} online of {totalMeters} registered meters
+              </div>
+            </div>
+            <div style={{ position: "relative", width: 76, height: 76 }}>
+              <DonutChart pct={healthPct} color="#0284c7" size={76} />
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#0284c7" }}>
+                {healthPct}%
+              </div>
+            </div>
           </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>Total Fleet</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{totalMeters}</div>
+          <div style={{ background: "#f1f5f9", borderRadius: 8, height: 6, overflow: "hidden", marginTop: 16 }}>
+            <div style={{ width: `${healthPct}%`, height: "100%", background: "linear-gradient(90deg, #0284c7, #38bdf8)", borderRadius: 8 }} />
           </div>
         </div>
 
-        <div
-          style={{
-            background: "#fff",
-            padding: "16px 20px",
-            borderRadius: 12,
-            border: "1px solid #e2e8f0",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 10,
-              background: "#ecfdf5",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#059669",
-            }}
-          >
-            <CheckCircle2 size={22} />
+        {/* Meter Types */}
+        <div style={{ background: "#ffffff", borderRadius: 16, padding: 22, border: "1px solid #e2e8f0", boxShadow: "0 4px 18px -4px rgba(0,0,0,0.06)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#059669", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                Vending Architecture
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", lineHeight: 1.1, marginTop: 4 }}>
+                {prepaidCount} <span style={{ fontSize: 16, color: "#64748b" }}>Prepaid STS</span>
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>IEC 62055-41 20-digit token compliant</div>
+            </div>
+            <div style={{ background: "#ecfdf5", borderRadius: 12, padding: "10px 12px", border: "1px solid #a7f3d0" }}>
+              <Layers size={22} color="#059669" />
+            </div>
           </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>Active Meters</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#059669" }}>{activeMeters}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div style={{ background: "#f8fafc", padding: "8px 12px", borderRadius: 8 }}>
+              <div style={{ fontSize: 10, color: "#64748b", fontWeight: 700 }}>PREPAID</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#0284c7" }}>{prepaidCount}</div>
+            </div>
+            <div style={{ background: "#f8fafc", padding: "8px 12px", borderRadius: 8 }}>
+              <div style={{ fontSize: 10, color: "#64748b", fontWeight: 700 }}>OTHER / MONIT.</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#64748b" }}>{totalMeters - prepaidCount}</div>
+            </div>
           </div>
         </div>
 
-        <div
-          style={{
-            background: "#fff",
-            padding: "16px 20px",
-            borderRadius: 12,
-            border: "1px solid #e2e8f0",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 10,
-              background: "#eff6ff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#2563eb",
-            }}
-          >
-            <Layers size={22} />
+        {/* Faulty / Maintenance */}
+        <div style={{ background: "#ffffff", borderRadius: 16, padding: 22, border: `1px solid ${faultyCount > 0 ? "#fecaca" : "#e2e8f0"}`, boxShadow: "0 4px 18px -4px rgba(0,0,0,0.06)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: faultyCount > 0 ? "#dc2626" : "#059669", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                Fleet Fault Status
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: faultyCount > 0 ? "#dc2626" : "#0f172a", lineHeight: 1.1, marginTop: 4 }}>
+                {faultyCount} <span style={{ fontSize: 16, color: "#64748b" }}>Meters</span>
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                {faultyCount > 0 ? "Hardware requiring technician service" : "Zero hardware alerts reported"}
+              </div>
+            </div>
+            <div style={{ background: faultyCount > 0 ? "#fef2f2" : "#f0fdf4", borderRadius: 12, padding: "10px 12px", border: `1px solid ${faultyCount > 0 ? "#fecaca" : "#a7f3d0"}` }}>
+              {faultyCount > 0 ? <Wrench size={22} color="#dc2626" /> : <CheckCircle2 size={22} color="#059669" />}
+            </div>
           </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>Prepaid Meters</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#2563eb" }}>{prepaidCount}</div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: "#fff",
-            padding: "16px 20px",
-            borderRadius: 12,
-            border: "1px solid #e2e8f0",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 10,
-              background: "#fef2f2",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#dc2626",
-            }}
-          >
-            <Wrench size={22} />
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>Faulty / Maint.</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#dc2626" }}>{faultyCount}</div>
+          <div style={{ background: faultyCount > 0 ? "#fee2e2" : "#f0fdf4", borderRadius: 8, padding: "8px 12px", fontSize: 12, color: faultyCount > 0 ? "#991b1b" : "#166534", fontWeight: 600 }}>
+            {faultyCount > 0 ? "Schedule meter replacement / audit" : "100% Meters operational"}
           </div>
         </div>
       </div>
 
-      {/* Filter / Search Bar */}
+      {/* ── FILTER & SEARCH BAR ── */}
       <div
         style={{
-          background: "#fff",
-          padding: 16,
-          borderRadius: 12,
+          background: "#ffffff",
+          borderRadius: 14,
+          padding: "16px 20px",
           border: "1px solid #e2e8f0",
-          marginBottom: 20,
+          boxShadow: "0 2px 10px -2px rgba(0,0,0,0.04)",
           display: "flex",
           gap: 12,
           flexWrap: "wrap",
           alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
-        <div style={{ position: "relative", flex: 1, minWidth: 260 }}>
-          <Search
-            size={16}
-            style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }}
-          />
-          <input
-            type="text"
-            placeholder="Search by meter #, serial, property, or unit..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", flex: 1 }}>
+          <div style={{ position: "relative", flex: 1, minWidth: 260 }}>
+            <Search
+              size={15}
+              style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }}
+            />
+            <input
+              type="text"
+              placeholder="Search by meter #, serial, property, or unit..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "9px 14px 9px 36px",
+                borderRadius: 8,
+                border: "1.5px solid #e2e8f0",
+                fontSize: 13,
+                outline: "none",
+                background: "#f8fafc",
+                color: "#0f172a",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
             style={{
-              width: "100%",
-              padding: "9px 12px 9px 36px",
+              padding: "8px 12px",
               borderRadius: 8,
-              border: "1px solid #cbd5e1",
-              fontSize: 14,
+              border: "1.5px solid #e2e8f0",
+              fontSize: 13,
               outline: "none",
+              background: "#f8fafc",
+              color: "#0f172a",
+              cursor: "pointer",
             }}
-          />
+          >
+            <option value="">All Statuses ({meters.length})</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Suspended">Suspended</option>
+            <option value="Faulty">Faulty</option>
+            <option value="Disconnected">Disconnected</option>
+            <option value="UnderMaintenance">Under Maintenance</option>
+          </select>
+
+          <select
+            value={propertyFilter}
+            onChange={(e) => setPropertyFilter(e.target.value)}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              border: "1.5px solid #e2e8f0",
+              fontSize: 13,
+              outline: "none",
+              background: "#f8fafc",
+              color: "#0f172a",
+              cursor: "pointer",
+            }}
+          >
+            <option value="">All Properties ({properties.length})</option>
+            {properties.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.propertyName || p.name}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={loadMeters}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 14px",
+              background: "#f8fafc",
+              border: "1.5px solid #e2e8f0",
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              color: "#475569",
+            }}
+          >
+            <RefreshCw size={13} /> Refresh
+          </button>
         </div>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          style={{
-            padding: "9px 12px",
-            borderRadius: 8,
-            border: "1px solid #cbd5e1",
-            fontSize: 14,
-            outline: "none",
-            background: "#fff",
-            color: "#334155",
-          }}
-        >
-          <option value="">All Statuses</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-          <option value="Suspended">Suspended</option>
-          <option value="Faulty">Faulty</option>
-          <option value="Disconnected">Disconnected</option>
-          <option value="UnderMaintenance">Under Maintenance</option>
-        </select>
-
-        <select
-          value={propertyFilter}
-          onChange={(e) => setPropertyFilter(e.target.value)}
-          style={{
-            padding: "9px 12px",
-            borderRadius: 8,
-            border: "1px solid #cbd5e1",
-            fontSize: 14,
-            outline: "none",
-            background: "#fff",
-            color: "#334155",
-          }}
-        >
-          <option value="">All Properties</option>
-          {properties.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.propertyName || p.name}
-            </option>
-          ))}
-        </select>
-
-        <button
-          onClick={loadMeters}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "9px 14px",
-            background: "#f8fafc",
-            border: "1px solid #cbd5e1",
-            borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 500,
-            cursor: "pointer",
-            color: "#475569",
-          }}
-        >
-          <RefreshCw size={14} /> Refresh
-        </button>
+        <div style={{ fontSize: 13, color: "#64748b", fontWeight: 600 }}>
+          Showing <span style={{ color: "#0f172a", fontWeight: 800 }}>{filteredMeters.length}</span> meters
+        </div>
       </div>
 
       {/* Meters Table */}
