@@ -17,6 +17,7 @@ public class OwnerConfiguration : IEntityTypeConfiguration<Owner>
         b.Property(x => x.Email).HasMaxLength(320);
         b.Property(x => x.NationalId).HasMaxLength(20);
         b.Property(x => x.KraPin).HasMaxLength(20);
+        b.Property(x => x.Address).HasMaxLength(500);
         b.Property(x => x.IsActive).HasDefaultValue(true);
         b.Property(x => x.CreatedBy).HasMaxLength(200);
         b.Property(x => x.CreatedAt).IsRequired();
@@ -33,6 +34,7 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         b.HasKey(x => x.Id);
         b.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         b.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        b.Property(x => x.PropertyCode).HasMaxLength(50);
         b.Property(x => x.Type).HasConversion<string>().HasMaxLength(20).IsRequired();
         b.Property(x => x.PhysicalAddress).HasMaxLength(500);
         b.Property(x => x.County).HasMaxLength(100);
@@ -45,6 +47,10 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         b.HasQueryFilter(x => !x.IsDeleted); // Global soft-delete filter
 
         b.HasIndex(x => x.Name).HasDatabaseName("IX_Properties_Name");
+        b.HasIndex(x => x.PropertyCode)
+         .IsUnique()
+         .HasFilter("[PropertyCode] IS NOT NULL")
+         .HasDatabaseName("UIX_Properties_PropertyCode");
         b.HasIndex(x => new { x.County, x.Town }).HasDatabaseName("IX_Properties_County_Town");
     }
 }
@@ -90,7 +96,9 @@ public class BuildingConfiguration : IEntityTypeConfiguration<Building>
         b.HasKey(x => x.Id);
         b.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         b.Property(x => x.Name).HasMaxLength(100).IsRequired();
+        b.Property(x => x.BuildingCode).HasMaxLength(50);
         b.Property(x => x.Description).HasMaxLength(500);
+        b.Property(x => x.IsActive).HasDefaultValue(true);
         b.Property(x => x.CreatedBy).HasMaxLength(200);
         b.Property(x => x.CreatedAt).IsRequired();
 
@@ -111,6 +119,23 @@ public class BuildingConfiguration : IEntityTypeConfiguration<Building>
     }
 }
 
+public class UnitTypeConfiguration : IEntityTypeConfiguration<UnitType>
+{
+    public void Configure(EntityTypeBuilder<UnitType> b)
+    {
+        b.ToTable("UnitTypes");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
+        b.Property(x => x.Name).HasMaxLength(100).IsRequired();
+        b.Property(x => x.Description).HasMaxLength(500);
+        b.Property(x => x.IsActive).HasDefaultValue(true);
+        b.Property(x => x.SortOrder).HasDefaultValue(0);
+        b.Property(x => x.CreatedAt).IsRequired();
+
+        b.HasIndex(x => x.Name).IsUnique().HasDatabaseName("UIX_UnitTypes_Name");
+    }
+}
+
 public class ApartmentConfiguration : IEntityTypeConfiguration<Apartment>
 {
     public void Configure(EntityTypeBuilder<Apartment> b)
@@ -121,6 +146,8 @@ public class ApartmentConfiguration : IEntityTypeConfiguration<Apartment>
         b.Property(x => x.UnitNumber).HasMaxLength(20).IsRequired();
         b.Property(x => x.Floor).HasMaxLength(10);
         b.Property(x => x.Description).HasMaxLength(500);
+        b.Property(x => x.MonthlyRent).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
+        b.Property(x => x.IsOccupied).HasDefaultValue(false);
         b.Property(x => x.CreatedBy).HasMaxLength(200);
         b.Property(x => x.CreatedAt).IsRequired();
 
@@ -132,10 +159,22 @@ public class ApartmentConfiguration : IEntityTypeConfiguration<Apartment>
          .HasDatabaseName("UIX_Apartments_BuildingId_UnitNumber_Active");
 
         b.HasIndex(x => x.BuildingId).HasDatabaseName("IX_Apartments_BuildingId");
+        b.HasIndex(x => x.PropertyId).HasDatabaseName("IX_Apartments_PropertyId");
+        b.HasIndex(x => x.UnitTypeId).HasDatabaseName("IX_Apartments_UnitTypeId");
 
         b.HasOne(x => x.Building)
          .WithMany(x => x.Apartments)
          .HasForeignKey(x => x.BuildingId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne(x => x.Property)
+         .WithMany()
+         .HasForeignKey(x => x.PropertyId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne(x => x.UnitType)
+         .WithMany(x => x.Apartments)
+         .HasForeignKey(x => x.UnitTypeId)
          .OnDelete(DeleteBehavior.Restrict);
     }
 }
@@ -147,15 +186,28 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         b.ToTable("Tenants");
         b.HasKey(x => x.Id);
         b.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
+        b.Property(x => x.FirstName).HasMaxLength(100);
+        b.Property(x => x.MiddleName).HasMaxLength(100);
+        b.Property(x => x.LastName).HasMaxLength(100);
         b.Property(x => x.FullName).HasMaxLength(200).IsRequired();
         b.Property(x => x.PhoneNumber).HasMaxLength(20).IsRequired();
+        b.Property(x => x.AlternativePhoneNumber).HasMaxLength(20);
         b.Property(x => x.Email).HasMaxLength(320);
         b.Property(x => x.NationalId).HasMaxLength(20);
+        b.Property(x => x.Address).HasMaxLength(500);
         b.Property(x => x.IsActive).HasDefaultValue(true);
         b.Property(x => x.CreatedBy).HasMaxLength(200);
         b.Property(x => x.CreatedAt).IsRequired();
 
         b.HasIndex(x => x.PhoneNumber).HasDatabaseName("IX_Tenants_PhoneNumber");
+        b.HasIndex(x => x.NationalId).HasDatabaseName("IX_Tenants_NationalId");
+        b.HasIndex(x => x.UserId).HasDatabaseName("IX_Tenants_UserId");
+
+        b.HasOne(x => x.User)
+         .WithMany()
+         .HasForeignKey(x => x.UserId)
+         .OnDelete(DeleteBehavior.SetNull)
+         .IsRequired(false);
     }
 }
 
@@ -166,9 +218,14 @@ public class TenancyConfiguration : IEntityTypeConfiguration<Tenancy>
         b.ToTable("Tenancies");
         b.HasKey(x => x.Id);
         b.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
+        b.Property(x => x.TenancyReference).HasMaxLength(50);
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
         b.Property(x => x.StartDate).IsRequired();
-        b.Property(x => x.Notes).HasMaxLength(1000);
+        b.Property(x => x.MonthlyRent).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
+        b.Property(x => x.SecurityDeposit).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
+        b.Property(x => x.RentPaymentDueDay).HasDefaultValue(1);
+        b.Property(x => x.BillingFrequency).HasConversion<string>().HasMaxLength(20).HasDefaultValue(BillingFrequency.Monthly);
+        b.Property(x => x.AgreementNotes).HasMaxLength(1000);
         b.Property(x => x.CreatedBy).HasMaxLength(200);
         b.Property(x => x.CreatedAt).IsRequired();
 
@@ -178,6 +235,11 @@ public class TenancyConfiguration : IEntityTypeConfiguration<Tenancy>
          .HasFilter("[Status] = 'Active'")
          .HasDatabaseName("UIX_Tenancies_ApartmentId_Active");
 
+        b.HasIndex(x => x.TenancyReference)
+         .IsUnique()
+         .HasFilter("[TenancyReference] IS NOT NULL")
+         .HasDatabaseName("UIX_Tenancies_TenancyReference");
+
         b.HasOne(x => x.Tenant)
          .WithMany(x => x.Tenancies)
          .HasForeignKey(x => x.TenantId)
@@ -186,6 +248,41 @@ public class TenancyConfiguration : IEntityTypeConfiguration<Tenancy>
         b.HasOne(x => x.Apartment)
          .WithMany(x => x.Tenancies)
          .HasForeignKey(x => x.ApartmentId)
+         .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public class TenancyTenantConfiguration : IEntityTypeConfiguration<TenancyTenant>
+{
+    public void Configure(EntityTypeBuilder<TenancyTenant> b)
+    {
+        b.ToTable("TenancyTenants");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
+        b.Property(x => x.IsPrimaryTenant).HasDefaultValue(false);
+        b.Property(x => x.JoinedAt).IsRequired();
+        b.Property(x => x.CreatedAt).IsRequired();
+
+        // Filtered unique: only one primary tenant per tenancy where occupant has not left
+        b.HasIndex(x => new { x.TenancyId, x.IsPrimaryTenant })
+         .IsUnique()
+         .HasFilter("[IsPrimaryTenant] = 1 AND [LeftAt] IS NULL")
+         .HasDatabaseName("UIX_TenancyTenants_PrimaryTenant_Active");
+
+        // Filtered unique: prevent duplicate active assignment of same tenant to same tenancy
+        b.HasIndex(x => new { x.TenancyId, x.TenantId })
+         .IsUnique()
+         .HasFilter("[LeftAt] IS NULL")
+         .HasDatabaseName("UIX_TenancyTenants_Tenancy_Tenant_Active");
+
+        b.HasOne(x => x.Tenancy)
+         .WithMany(x => x.Tenants)
+         .HasForeignKey(x => x.TenancyId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne(x => x.Tenant)
+         .WithMany(x => x.TenancyAssignments)
+         .HasForeignKey(x => x.TenantId)
          .OnDelete(DeleteBehavior.Restrict);
     }
 }

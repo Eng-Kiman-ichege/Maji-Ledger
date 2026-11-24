@@ -23,7 +23,7 @@ public class SecurityAttributesAndControllerProtectionTests
     [InlineData(typeof(QrCodesController))]
     public void SensitiveControllers_MustHaveAuthorizeAttributeAtClassLevel(Type controllerType)
     {
-        var authorizeAttribute = controllerType.GetCustomAttribute<AuthorizeAttribute>();
+        var authorizeAttribute = controllerType.GetCustomAttributes<AuthorizeAttribute>().FirstOrDefault();
         authorizeAttribute.Should().NotBeNull(
             $"Controller {controllerType.Name} exposes sensitive data or state-changing operations and must be protected with [Authorize]");
     }
@@ -33,7 +33,7 @@ public class SecurityAttributesAndControllerProtectionTests
     [InlineData(typeof(PaymentConfigsController))]
     public void AdministrativeControllers_MustRequireAdminRole(Type controllerType)
     {
-        var authorizeAttribute = controllerType.GetCustomAttribute<AuthorizeAttribute>();
+        var authorizeAttribute = controllerType.GetCustomAttributes<AuthorizeAttribute>().FirstOrDefault();
         authorizeAttribute.Should().NotBeNull();
         authorizeAttribute!.Roles.Should().Contain("Admin");
     }

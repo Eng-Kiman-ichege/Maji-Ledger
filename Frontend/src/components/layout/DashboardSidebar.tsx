@@ -12,335 +12,362 @@ import {
   LogOut,
   ExternalLink,
   ShieldCheck,
-  UserCheck,
+  Home,
+  FileText,
+  TrendingDown,
+  CreditCard,
+  BarChart3,
+  Droplets,
+  Activity,
+  RefreshCw,
+  Wrench,
+  Bell,
+  User,
+  Sliders,
+  AlertTriangle,
+  Zap,
+  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import type { PlatformSuite } from "@/contexts/AuthContext";
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAdmin, isOwner, logout } = useAuth();
+  const { user, isAdmin, isOwner, isTenant, activeSuite, setActiveSuite, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
     router.push("/login");
   };
 
-  const adminNavItems = [
-    { href: "/dashboard", label: "Executive Overview", icon: LayoutDashboard },
-    { href: "/dashboard/properties", label: "Properties Portfolio", icon: Building2 },
-    { href: "/dashboard/meters", label: "Smart Water Meters", icon: Gauge },
-    { href: "/dashboard/payments", label: "Transactions & Tokens", icon: Receipt },
-    { href: "/dashboard/qr-analytics", label: "QR Traceability", icon: QrCode },
-    { href: "/dashboard/users", label: "User Management", icon: Users },
-  ];
+  const isWaterRoute =
+    pathname.startsWith("/dashboard/water") ||
+    pathname === "/dashboard/landlord/water" ||
+    pathname === "/dashboard/tenant/water";
 
-  const ownerNavItems = [
-    { href: "/dashboard/owner", label: "My Property Overview", icon: LayoutDashboard },
-    { href: "/dashboard/properties", label: "My Properties", icon: Building2 },
-    { href: "/dashboard/meters", label: "Water Consumption", icon: Gauge },
-    { href: "/dashboard/payments", label: "Revenue & Earnings", icon: Receipt },
-  ];
+  const effectiveSuite: PlatformSuite = isWaterRoute ? "water" : activeSuite;
+  const isProperty = effectiveSuite === "property";
 
-  const currentNav = isOwner ? ownerNavItems : adminNavItems;
+  const handleSwitchSuite = (targetSuite: PlatformSuite) => {
+    setActiveSuite(targetSuite);
+    if (targetSuite === "property") {
+      router.push(isOwner ? "/dashboard/landlord" : isTenant ? "/dashboard/tenant" : "/dashboard");
+    } else {
+      router.push(isOwner ? "/dashboard/landlord/water" : isTenant ? "/dashboard/tenant/water" : "/dashboard/water");
+    }
+  };
+
+  const isActive = (href: string) =>
+    href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
+
   const userInitials = user?.fullName
-    ? user.fullName
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : isAdmin
-    ? "AD"
-    : "PO";
+    ? user.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : user?.email?.[0]?.toUpperCase() || "U";
+
+  // ── Colors ──
+  const brandPrimary = isProperty ? "#6366f1" : "#0284c7";
+  const brandDark = isProperty ? "#4f46e5" : "#0369a1";
+  const brandBg = isProperty
+    ? "linear-gradient(180deg, #1e1b4b 0%, #2d2a7a 40%, #3730a3 100%)"
+    : "linear-gradient(180deg, #082f49 0%, #0c4a6e 40%, #075985 100%)";
+
+  // ── Nav groups ──
+  const propertyGeneralItems = [
+    { href: "/dashboard", label: "Property Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard/properties", label: "Properties Portfolio", icon: Building2 },
+    { href: "/dashboard/landlord", label: "Landlord Portal", icon: Home },
+    ...(!isOwner ? [{ href: "/dashboard/users", label: "User Management", icon: Users }] : []),
+  ];
+  const rentLedgerItems = [
+    { href: "/dashboard/rent", label: "Rent Dashboard", icon: Home },
+    { href: "/dashboard/rent/charges", label: "Invoicing & Charges", icon: FileText },
+    { href: "/dashboard/rent/payments", label: "Record Payment", icon: CreditCard },
+    { href: "/dashboard/rent/arrears", label: "Arrears Aging", icon: TrendingDown },
+    { href: "/dashboard/rent/statements", label: "Rent Statements", icon: BarChart3 },
+  ];
+  const adminControlItems = [
+    { href: "/dashboard/admin", label: "Admin Control Centre", icon: ShieldCheck },
+    { href: "/dashboard/admin/settings", label: "System Parameters", icon: Sliders },
+    { href: "/dashboard/admin/audit", label: "Audit Trail", icon: Activity },
+  ];
+  const reconciliationItems = [
+    { href: "/dashboard/finance/reconciliation", label: "Financial Reconciliation", icon: RefreshCw },
+    { href: "/dashboard/finance/discrepancies", label: "Discrepancy Queue", icon: AlertTriangle },
+    { href: "/dashboard/finance/reports", label: "Consolidated NOI Reports", icon: FileText },
+  ];
+  const analyticsItems = [
+    { href: "/dashboard/analytics", label: "Portfolio Analytics", icon: BarChart3 },
+  ];
+  const landlordPropertyItems = [
+    { href: "/dashboard/landlord", label: "Executive Overview", icon: LayoutDashboard },
+    { href: "/dashboard/landlord/properties", label: "My Properties", icon: Building2 },
+    { href: "/dashboard/landlord/apartments", label: "Apartments & Units", icon: Home },
+    { href: "/dashboard/landlord/tenants", label: "Tenants & Leases", icon: Users },
+    { href: "/dashboard/landlord/rent", label: "Rent Collections", icon: CreditCard },
+    { href: "/dashboard/landlord/maintenance", label: "Maintenance", icon: Wrench },
+    { href: "/dashboard/landlord/reports", label: "Financial Reports", icon: BarChart3 },
+    { href: "/dashboard/landlord/statements", label: "Rent Statements", icon: FileText },
+    { href: "/dashboard/landlord/notifications", label: "Notifications", icon: Bell },
+    { href: "/dashboard/landlord/profile", label: "Account Profile", icon: User },
+  ];
+  const tenantPropertyItems = [
+    { href: "/dashboard/tenant", label: "Resident Hub", icon: LayoutDashboard },
+    { href: "/dashboard/tenant/tenancy", label: "Tenancy & Lease", icon: FileText },
+    { href: "/dashboard/tenant/rent", label: "Rent & Payments", icon: CreditCard },
+    { href: "/dashboard/tenant/maintenance", label: "Maintenance Requests", icon: Wrench },
+    { href: "/dashboard/tenant/profile", label: "Resident Profile", icon: User },
+  ];
+  const waterMainItems = [
+    { href: "/dashboard/water", label: "Water Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard/water/transactions", label: "Water Transactions", icon: Receipt },
+    { href: "/dashboard/water/tokens", label: "Token Generation", icon: Zap },
+    { href: "/dashboard/water/qr", label: "QR Scan-to-Pay", icon: QrCode },
+    { href: "/dashboard/water/reports", label: "Water Reports", icon: BarChart3 },
+  ];
+  const waterInfrastructureItems = [
+    { href: "/dashboard/water/meters", label: "Meters Registry", icon: Gauge },
+    { href: "/dashboard/water/tariffs", label: "Tariff Management", icon: Sliders },
+    { href: "/dashboard/water/consumption", label: "Consumption Analytics", icon: Activity },
+    { href: "/dashboard/water/reconciliation", label: "M-Pesa Reconciliation", icon: RefreshCw },
+  ];
+  const landlordWaterItems = [
+    { href: "/dashboard/landlord/water", label: "Water Overview", icon: LayoutDashboard },
+    { href: "/dashboard/water/meters", label: "My Meters", icon: Gauge },
+    { href: "/dashboard/water/transactions", label: "Water Revenue", icon: Receipt },
+  ];
+  const tenantWaterItems = [
+    { href: "/dashboard/tenant/water", label: "Buy Water Tokens", icon: Droplets },
+  ];
+
+  const renderNavItem = (item: { href: string; label: string; icon: React.ComponentType<{ size?: number }> }) => {
+    const active = isActive(item.href);
+    const Icon = item.icon;
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "9px 14px",
+          borderRadius: 10,
+          textDecoration: "none",
+          fontSize: 13,
+          fontWeight: active ? 700 : 500,
+          color: active ? "#fff" : "rgba(255,255,255,0.6)",
+          background: active ? "rgba(255,255,255,0.15)" : "transparent",
+          borderLeft: active ? `3px solid ${brandPrimary}` : "3px solid transparent",
+          transition: "all 0.15s ease",
+          marginBottom: 2,
+          position: "relative",
+        }}
+        onMouseEnter={(e) => {
+          if (!active) {
+            e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+            e.currentTarget.style.color = "rgba(255,255,255,0.9)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!active) {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+          }
+        }}
+      >
+        <Icon size={16} />
+        <span style={{ flex: 1 }}>{item.label}</span>
+        {active && <ChevronRight size={12} style={{ opacity: 0.7 }} />}
+      </Link>
+    );
+  };
+
+  const renderNavSection = (title: string, items: { href: string; label: string; icon: React.ComponentType<{ size?: number }> }[]) => (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{
+        fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)",
+        textTransform: "uppercase", letterSpacing: "0.12em",
+        padding: "0 14px", marginBottom: 6
+      }}>
+        {title}
+      </div>
+      {items.map(renderNavItem)}
+    </div>
+  );
 
   return (
-    <aside
-      style={{
-        width: 260,
-        flexShrink: 0,
-        background: "#ffffff",
-        borderRight: "1px solid #e2e8f0",
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        position: "sticky",
-        top: 0,
-        overflowY: "auto",
-        boxShadow: "1px 0 3px 0 rgba(15, 23, 42, 0.03)",
-        zIndex: 40,
-      }}
-    >
-      {/* Brand Header */}
-      <Link
-        href={isOwner ? "/dashboard/owner" : "/dashboard"}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          padding: "22px 20px 20px",
-          textDecoration: "none",
-          borderBottom: "1px solid #f1f5f9",
-        }}
-      >
-        <div
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: 10,
-            background: "var(--gradient-brand)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 20,
-            color: "#ffffff",
-            boxShadow: "0 2px 8px -1px rgba(2, 132, 199, 0.4)",
-            flexShrink: 0,
-          }}
-        >
-          💧
-        </div>
-        <div>
-          <span
-            style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              fontWeight: 800,
-              fontSize: 18,
-              letterSpacing: "-0.5px",
-              display: "block",
-              lineHeight: 1.1,
-            }}
-          >
-            <span className="gradient-text">Maji</span>{" "}
-            <span style={{ color: "#0f172a" }}>Ledger</span>
-          </span>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#64748b",
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-            }}
-          >
-            Water Billing Platform
-          </span>
-        </div>
-      </Link>
+    <aside style={{
+      width: 240,
+      flexShrink: 0,
+      background: brandBg,
+      display: "flex",
+      flexDirection: "column",
+      height: "100vh",
+      position: "sticky",
+      top: 0,
+      overflowY: "auto",
+      overflowX: "hidden",
+      boxShadow: "2px 0 20px rgba(0,0,0,0.25)",
+      scrollbarWidth: "none",
+    }}>
+      <style>{`aside::-webkit-scrollbar{display:none}`}</style>
 
-      {/* Role Badge Indicator (No switcher button) */}
-      <div
-        style={{
-          padding: "16px 16px 12px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderBottom: "1px solid #f8fafc",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {isOwner ? (
-            <UserCheck size={16} color="#059669" />
-          ) : (
-            <ShieldCheck size={16} color="#0284c7" />
-          )}
-          <span
+      {/* ── BRAND HEADER ── */}
+      <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: isProperty
+              ? "linear-gradient(135deg, #818cf8 0%, #6366f1 100%)"
+              : "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 18, boxShadow: `0 4px 12px rgba(0,0,0,0.3)`,
+          }}>
+            {isProperty ? "🏢" : "💧"}
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.3px" }}>
+              {isProperty ? (
+                <>Property<span style={{ color: "#a5b4fc" }}>Ledger</span></>
+              ) : (
+                <><span style={{ color: "#7dd3fc" }}>Maji</span> Ledger</>
+              )}
+            </div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+              {isProperty ? "Property Management" : "Smart Water Utility"}
+            </div>
+          </div>
+        </Link>
+
+        {/* Suite Switcher */}
+        <div style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: 4, display: "flex", gap: 4, border: "1px solid rgba(255,255,255,0.08)" }}>
+          <button
+            onClick={() => handleSwitchSuite("property")}
             style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#64748b",
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
+              flex: 1, padding: "7px 0", borderRadius: 7, border: "none", cursor: "pointer",
+              fontSize: 11, fontWeight: 700, transition: "all 0.2s ease",
+              background: isProperty ? "linear-gradient(135deg, #4f46e5, #6366f1)" : "transparent",
+              color: isProperty ? "#fff" : "rgba(255,255,255,0.4)",
+              boxShadow: isProperty ? "0 2px 8px rgba(79,70,229,0.4)" : "none",
             }}
           >
-            {isOwner ? "Owner Portal" : "Admin Console"}
+            🏢 Property
+          </button>
+          <button
+            onClick={() => handleSwitchSuite("water")}
+            style={{
+              flex: 1, padding: "7px 0", borderRadius: 7, border: "none", cursor: "pointer",
+              fontSize: 11, fontWeight: 700, transition: "all 0.2s ease",
+              background: !isProperty ? "linear-gradient(135deg, #0369a1, #0284c7)" : "transparent",
+              color: !isProperty ? "#fff" : "rgba(255,255,255,0.4)",
+              boxShadow: !isProperty ? "0 2px 8px rgba(2,132,199,0.4)" : "none",
+            }}
+          >
+            💧 Maji
+          </button>
+        </div>
+
+        {/* Role Badge */}
+        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{
+            fontSize: 9, fontWeight: 800, padding: "3px 8px", borderRadius: 5,
+            background: isAdmin ? "rgba(239,68,68,0.2)" : isOwner ? "rgba(99,102,241,0.25)" : "rgba(255,255,255,0.1)",
+            color: isAdmin ? "#fca5a5" : isOwner ? "#c7d2fe" : "rgba(255,255,255,0.5)",
+            border: `1px solid ${isAdmin ? "rgba(239,68,68,0.3)" : isOwner ? "rgba(99,102,241,0.3)" : "rgba(255,255,255,0.1)"}`,
+            textTransform: "uppercase", letterSpacing: "0.08em",
+          }}>
+            {isAdmin ? "ADMIN" : isOwner ? "OWNER" : isTenant ? "TENANT" : "USER"}
+          </div>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {user?.fullName?.split(" ")[0] || "User"}
           </span>
         </div>
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            padding: "3px 8px",
-            borderRadius: 6,
-            background: isOwner ? "#ecfdf5" : "#f0f9ff",
-            color: isOwner ? "#047857" : "#0369a1",
-            border: isOwner ? "1px solid #a7f3d0" : "1px solid #bae6fd",
-          }}
-        >
-          {user?.role ? user.role.toUpperCase() : isAdmin ? "ADMIN" : "OWNER"}
-        </span>
       </div>
 
-      {/* Navigation links */}
-      <nav
-        style={{
-          padding: "12px",
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-        }}
-      >
-        {currentNav.map((item) => {
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : item.href === "/dashboard/owner"
-              ? pathname === "/dashboard/owner"
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-          const IconComponent = item.icon;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "9px 12px",
-                borderRadius: 10,
-                textDecoration: "none",
-                fontSize: 13,
-                fontWeight: isActive ? 600 : 500,
-                color: isActive ? "#0284c7" : "#334155",
-                background: isActive ? "#f0f9ff" : "transparent",
-                border: isActive ? "1px solid #bae6fd" : "1px solid transparent",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <IconComponent
-                size={17}
-                color={isActive ? "#0284c7" : "#64748b"}
-                style={{ flexShrink: 0 }}
-              />
-              <span style={{ flex: 1 }}>{item.label}</span>
-              {isActive && (
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    background: "#0284c7",
-                  }}
-                />
-              )}
-            </Link>
-          );
-        })}
+      {/* ── NAVIGATION ── */}
+      <nav style={{ flex: 1, padding: "16px 8px", overflowY: "auto", display: "flex", flexDirection: "column", scrollbarWidth: "none" }}>
+        {isProperty ? (
+          isTenant ? (
+            renderNavSection("Resident Portal", tenantPropertyItems)
+          ) : isOwner ? (
+            renderNavSection("Landlord Portal", landlordPropertyItems)
+          ) : (
+            <>
+              {renderNavSection("Portfolio & Leases", propertyGeneralItems)}
+              {renderNavSection("Rent Ledger", rentLedgerItems)}
+              {!isAdmin ? null : renderNavSection("Administration", adminControlItems)}
+              {renderNavSection("Treasury & Reconciliation", reconciliationItems)}
+              {renderNavSection("Business Intelligence", analyticsItems)}
+            </>
+          )
+        ) : (
+          isTenant ? (
+            renderNavSection("Prepaid Water", tenantWaterItems)
+          ) : isOwner ? (
+            renderNavSection("Water Management", landlordWaterItems)
+          ) : (
+            <>
+              {renderNavSection("Prepaid Water Operations", waterMainItems)}
+              {renderNavSection("Infrastructure & Hardware", waterInfrastructureItems)}
+            </>
+          )
+        )}
       </nav>
 
-      {/* Quick link & User Profile Bar */}
-      <div style={{ padding: "16px 14px", borderTop: "1px solid #f1f5f9" }}>
+      {/* ── BOTTOM SECTION ── */}
+      <div style={{ padding: "12px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
         <Link
           href="/pay/demo-token"
           target="_blank"
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "9px 12px",
-            background: "#f8fafc",
-            borderRadius: 10,
-            border: "1px solid #e2e8f0",
-            textDecoration: "none",
-            fontSize: 12,
-            color: "#334155",
-            fontWeight: 600,
-            marginBottom: 14,
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "9px 12px", background: "rgba(255,255,255,0.08)",
+            borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)",
+            textDecoration: "none", fontSize: 12,
+            color: "rgba(255,255,255,0.6)", fontWeight: 600, marginBottom: 10,
             transition: "all 0.15s ease",
           }}
+          onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#fff"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span>📱</span>
-            <span>Scan-to-Pay</span>
+            <span>📱</span><span>Resident Scan-to-Pay</span>
           </div>
-          <ExternalLink size={13} color="#94a3b8" />
+          <ExternalLink size={12} />
         </Link>
 
-        {/* User profile & Logout */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "8px 6px",
-            background: "#f8fafc",
-            borderRadius: 10,
-            border: "1px solid #e2e8f0",
-          }}
-        >
-          <div
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: "50%",
-              background: isOwner ? "#d1fae5" : "#e0f2fe",
-              border: isOwner ? "1px solid #a7f3d0" : "1px solid #bae6fd",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 12,
-              fontWeight: 700,
-              color: isOwner ? "#047857" : "#0369a1",
-              flexShrink: 0,
-            }}
-          >
+        {/* User Profile */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10,
+          padding: "10px 12px", background: "rgba(255,255,255,0.08)",
+          borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)",
+        }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: "50%",
+            background: `linear-gradient(135deg, ${isProperty ? "#818cf8" : "#38bdf8"}, ${brandPrimary})`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 13, fontWeight: 800, color: "#fff", flexShrink: 0,
+            boxShadow: `0 2px 8px rgba(0,0,0,0.3)`,
+          }}>
             {userInitials}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#0f172a",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-              title={user?.fullName || "User"}
-            >
-              {user?.fullName || "Maji User"}
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={user?.fullName || "User"}>
+              {user?.fullName || "Platform User"}
             </div>
-            <div
-              style={{
-                fontSize: 11,
-                color: "#64748b",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-              title={user?.email || ""}
-            >
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={user?.email || ""}>
               {user?.email || "Signed in"}
             </div>
           </div>
           <button
             onClick={handleLogout}
             title="Sign out"
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 6,
-              borderRadius: 6,
-              color: "#94a3b8",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "all 0.15s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#ef4444";
-              e.currentTarget.style.background = "#fee2e2";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "#94a3b8";
-              e.currentTarget.style.background = "transparent";
-            }}
+            style={{ background: "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", padding: 7, borderRadius: 8, color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s ease" }}
+            onMouseEnter={e => { e.currentTarget.style.color = "#fca5a5"; e.currentTarget.style.background = "rgba(239,68,68,0.2)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.5)"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
           </button>
         </div>
       </div>

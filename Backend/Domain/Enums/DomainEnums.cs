@@ -1,5 +1,52 @@
 namespace MajiLedger.Domain.Enums;
 
+// ─── Maintenance ──────────────────────────────────────────────────────────────
+public enum MaintenanceCategory
+{
+    Plumbing = 1,
+    Electrical = 2,
+    Structural = 3,
+    Painting = 4,
+    Security = 5,
+    Cleaning = 6,
+    Appliance = 7,
+    Landscaping = 8,
+    Other = 99
+}
+
+public enum MaintenancePriority
+{
+    Low = 1,
+    Medium = 2,
+    High = 3,
+    Critical = 4
+}
+
+public enum MaintenanceStatus
+{
+    Submitted = 1,
+    Acknowledged = 2,
+    InProgress = 3,
+    OnHold = 4,
+    Completed = 5,
+    Cancelled = 6
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+public enum NotificationType
+{
+    General = 1,
+    RentCharge = 2,
+    RentPayment = 3,
+    RentArrear = 4,
+    WaterPurchase = 5,
+    WaterToken = 6,
+    MaintenanceUpdate = 7,
+    TenancyCreated = 8,
+    TenancyEnded = 9,
+    SystemAlert = 99
+}
+
 // ─── Users & Authorization ────────────────────────────────────────────────────
 public enum UserRole
 {
@@ -35,17 +82,73 @@ public enum OwnershipRole
 // ─── Tenancy ──────────────────────────────────────────────────────────────────
 public enum TenancyStatus
 {
+    Pending = 0,
     Active = 1,
     Ended = 2,
-    Suspended = 3
+    Suspended = 3,
+    Expired = 4,
+    Terminated = 5,
+    Cancelled = 6
+}
+
+public enum BillingFrequency
+{
+    Monthly = 1,
+    Quarterly = 2,
+    Biannual = 3,
+    Annual = 4
+}
+
+// ─── Rent Ledger Domain ──────────────────────────────────────────────────────
+public enum RentChargeStatus
+{
+    Pending = 1,
+    PartiallyPaid = 2,
+    Paid = 3,
+    Overdue = 4,
+    Cancelled = 5
+}
+
+public enum RentPaymentMethod
+{
+    Mpesa = 1,
+    BankTransfer = 2,
+    Cash = 3,
+    Cheque = 4,
+    Other = 5
+}
+
+public enum RentPaymentStatus
+{
+    Pending = 1,
+    Confirmed = 2,
+    Failed = 3,
+    Reversed = 4
+}
+
+public enum TenantCreditStatus
+{
+    Active = 1,
+    FullyUtilized = 2,
+    Expired = 3,
+    Refunded = 4
 }
 
 // ─── Meters ───────────────────────────────────────────────────────────────────
 public enum MeterType
 {
-    Standard = 1,  // Manual-read conventional meter
-    Prepaid = 2,   // Token-based STS prepaid meter
-    Smart = 3      // IoT-enabled, remote readings
+    Standard = 1,        // Manual-read conventional meter
+    Prepaid = 2,         // Token-based STS prepaid meter
+    Smart = 3,           // IoT-enabled, remote readings
+    Postpaid = 4,        // Postpaid billing
+    MonitoringOnly = 5   // Monitoring without token billing
+}
+
+public enum MeterIntegrationType
+{
+    ApiIntegrated = 1,   // STS / IoT provider integration
+    ManualToken = 2,     // Operator manually inputs tokens
+    MonitoringOnly = 3   // No token generation needed
 }
 
 public enum MeterStatus
@@ -53,7 +156,36 @@ public enum MeterStatus
     Active = 1,
     Inactive = 2,
     Suspended = 3,
-    Decommissioned = 4
+    Decommissioned = 4,
+    Faulty = 5,
+    Disconnected = 6,
+    UnderMaintenance = 7
+}
+
+public enum WaterTransactionPaymentStatus
+{
+    Pending = 1,
+    Confirmed = 2,
+    Failed = 3,
+    Reversed = 4
+}
+
+public enum WaterTransactionTokenStatus
+{
+    NotRequired = 0,
+    Pending = 1,
+    Generated = 2,
+    Delivered = 3,
+    Failed = 4
+}
+
+public enum WaterPaymentMethod
+{
+    Mpesa = 1,
+    AirtelMoney = 2,
+    BankTransfer = 3,
+    Cash = 4,
+    Other = 5
 }
 
 public enum MeterReadingSource
@@ -143,4 +275,39 @@ public enum SmsDeliveryStatus
     Sent = 2,
     Delivered = 3,
     Failed = 4
+}
+
+// ─── Financial Reconciliation ─────────────────────────────────────────────────
+public enum ReconciliationLedgerType
+{
+    Rent = 1,
+    Water = 2,
+    Consolidated = 3
+}
+
+public enum ReconciliationStatus
+{
+    Draft = 1,
+    InProgress = 2,
+    Reconciled = 3,
+    DiscrepanciesFlagged = 4,
+    Closed = 5
+}
+
+public enum DiscrepancyStatus
+{
+    Pending = 1,
+    Resolved = 2,
+    Ignored = 3
+}
+
+// ─── System Settings ──────────────────────────────────────────────────────────
+public enum SettingCategory
+{
+    General = 1,
+    Financial = 2,
+    Billing = 3,
+    Water = 4,
+    Notifications = 5,
+    Security = 6
 }

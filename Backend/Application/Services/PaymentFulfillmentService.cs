@@ -107,6 +107,35 @@ public class PaymentFulfillmentService(
             await db.SaveChangesAsync(ct);
         }
 
+        // 5b. Synchronize WaterTransaction for the Water Ledger
+        var propId = meter.CurrentApartment?.Building?.PropertyId ?? Guid.Empty;
+        var unitId = meter.CurrentApartmentId ?? Guid.Empty;
+
+        var wtx = await db.WaterTransactions
+            .FirstOrDefaultAsync(w => w.ExternalTransactionReference == providerRef, ct);
+
+        if (wtx == null && propId != Guid.Empty && unitId != Guid.Empty)
+        {
+            var txRef = $"WTX-{paidAt:yyyyMM}-{new Random().Next(10000, 99999)}";
+            wtx = WaterTransaction.Create(
+                transactionReference: txRef,
+                propertyId: propId,
+                unitId: unitId,
+                waterMeterId: meter.Id,
+                amount: amountConfirmed,
+                unitsPurchased: unitsCalculated,
+                unitPrice: unitsCalculated > 0 ? Math.Round(amountConfirmed / unitsCalculated, 2) : 0,
+                paymentMethod: attempt.Channel == PaymentChannel.AirtelPaybill ? WaterPaymentMethod.AirtelMoney : WaterPaymentMethod.Mpesa,
+                phoneNumber: attempt.CustomerPhone,
+                transactionDate: paidAt,
+                externalTransactionReference: providerRef,
+                paymentStatus: WaterTransactionPaymentStatus.Confirmed,
+                tokenStatus: WaterTransactionTokenStatus.Pending);
+
+            db.WaterTransactions.Add(wtx);
+            await db.SaveChangesAsync(ct);
+        }
+
         // 6. STS Token Generation
         // Do not blindly retry token generation if a token was already issued for this purchase!
         if (purchase.WaterToken != null)
@@ -142,6 +171,7 @@ public class PaymentFulfillmentService(
                 purchase.Id, 1, requestPayload, stsResponsePayload));
 
             purchase.MarkTokenIssued();
+            wtx?.SetTokenGenerated(stsToken);
             await db.SaveChangesAsync(ct);
 
             // 7. SMS Delivery
@@ -158,6 +188,7 @@ public class PaymentFulfillmentService(
                     smsRecord.MarkSent(gatewayRef);
                     smsRecord.MarkDelivered();
                     waterToken.MarkDelivered();
+                    wtx?.SetTokenDelivered();
                     await db.SaveChangesAsync(ct);
                 }
                 catch (Exception)
@@ -175,6 +206,7 @@ public class PaymentFulfillmentService(
             db.TokenGenerationAttempts.Add(TokenGenerationAttempt.RecordFailure(
                 purchase.Id, 1, requestPayload, null, ex.Message));
             purchase.MarkTokenFailed();
+            wtx?.FailToken(ex.Message);
             await db.SaveChangesAsync(ct);
         }
 

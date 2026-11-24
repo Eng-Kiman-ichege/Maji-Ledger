@@ -14,8 +14,13 @@ public class MeterConfiguration : IEntityTypeConfiguration<Meter>
         b.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         b.Property(x => x.MeterNumber).HasMaxLength(50).IsRequired();
         b.Property(x => x.SerialNumber).HasMaxLength(100);
+        b.Property(x => x.Manufacturer).HasMaxLength(100);
+        b.Property(x => x.Model).HasMaxLength(100);
         b.Property(x => x.Type).HasConversion<string>().HasMaxLength(20).IsRequired();
+        b.Property(x => x.IntegrationType).HasConversion<string>().HasMaxLength(30).IsRequired();
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+        b.Property(x => x.LastReading).HasColumnType("decimal(18,4)");
+        b.Property(x => x.Notes).HasMaxLength(500);
         b.Property(x => x.CreatedBy).HasMaxLength(200);
         b.Property(x => x.CreatedAt).IsRequired();
 
@@ -172,5 +177,99 @@ public class TariffTierConfiguration : IEntityTypeConfiguration<TariffTier>
          .WithMany(x => x.Tiers)
          .HasForeignKey(x => x.TariffId)
          .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+
+public class WaterTransactionConfiguration : IEntityTypeConfiguration<WaterTransaction>
+{
+    public void Configure(EntityTypeBuilder<WaterTransaction> b)
+    {
+        b.ToTable("WaterTransactions");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
+
+        b.Property(x => x.TransactionReference).HasMaxLength(50).IsRequired();
+        b.Property(x => x.ExternalTransactionReference).HasMaxLength(100);
+        b.Property(x => x.PhoneNumber).HasMaxLength(30).IsRequired();
+        b.Property(x => x.Amount).HasColumnType("decimal(18,2)").IsRequired();
+        b.Property(x => x.UnitsPurchased).HasColumnType("decimal(18,4)").IsRequired();
+        b.Property(x => x.UnitPrice).HasColumnType("decimal(18,2)").IsRequired();
+        b.Property(x => x.PaymentMethod).HasConversion<string>().HasMaxLength(30).IsRequired();
+        b.Property(x => x.PaymentStatus).HasConversion<string>().HasMaxLength(30).IsRequired();
+        b.Property(x => x.TokenStatus).HasConversion<string>().HasMaxLength(30).IsRequired();
+        b.Property(x => x.TokenValue).HasMaxLength(100);
+        b.Property(x => x.FailureReason).HasMaxLength(500);
+        b.Property(x => x.Notes).HasMaxLength(500);
+        b.Property(x => x.TransactionDate).IsRequired();
+        b.Property(x => x.CreatedAt).IsRequired();
+
+        // Unique Transaction Reference
+        b.HasIndex(x => x.TransactionReference)
+         .IsUnique()
+         .HasDatabaseName("UIX_WaterTransactions_TransactionReference");
+
+        // Filtered unique external reference for confirmed payments
+        b.HasIndex(x => x.ExternalTransactionReference)
+         .IsUnique()
+         .HasFilter("[ExternalTransactionReference] IS NOT NULL AND [PaymentStatus] = 'Confirmed'")
+         .HasDatabaseName("UIX_WaterTransactions_ExternalRef_Confirmed");
+
+        // Fast lookup indexes
+        b.HasIndex(x => x.PropertyId).HasDatabaseName("IX_WaterTransactions_PropertyId");
+        b.HasIndex(x => x.UnitId).HasDatabaseName("IX_WaterTransactions_UnitId");
+        b.HasIndex(x => x.WaterMeterId).HasDatabaseName("IX_WaterTransactions_WaterMeterId");
+        b.HasIndex(x => x.TransactionDate).HasDatabaseName("IX_WaterTransactions_TransactionDate");
+        b.HasIndex(x => x.PaymentStatus).HasDatabaseName("IX_WaterTransactions_PaymentStatus");
+        b.HasIndex(x => x.TokenStatus).HasDatabaseName("IX_WaterTransactions_TokenStatus");
+
+        // Relationships
+        b.HasOne(x => x.Property)
+         .WithMany()
+         .HasForeignKey(x => x.PropertyId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne(x => x.Unit)
+         .WithMany()
+         .HasForeignKey(x => x.UnitId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne(x => x.WaterMeter)
+         .WithMany()
+         .HasForeignKey(x => x.WaterMeterId)
+         .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne(x => x.Tenant)
+         .WithMany()
+         .HasForeignKey(x => x.TenantId)
+         .OnDelete(DeleteBehavior.Restrict)
+         .IsRequired(false);
+    }
+}
+
+public class WaterReadingConfiguration : IEntityTypeConfiguration<WaterReading>
+{
+    public void Configure(EntityTypeBuilder<WaterReading> b)
+    {
+        b.ToTable("WaterReadings");
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
+
+        b.Property(x => x.PreviousReading).HasColumnType("decimal(18,4)").IsRequired();
+        b.Property(x => x.CurrentReading).HasColumnType("decimal(18,4)").IsRequired();
+        b.Property(x => x.Consumption).HasColumnType("decimal(18,4)").IsRequired();
+        b.Property(x => x.ReadingSource).HasConversion<string>().HasMaxLength(30).IsRequired();
+        b.Property(x => x.RecordedByUserId).HasMaxLength(200);
+        b.Property(x => x.Notes).HasMaxLength(500);
+        b.Property(x => x.ReadingDate).IsRequired();
+        b.Property(x => x.CreatedAt).IsRequired();
+
+        b.HasIndex(x => x.WaterMeterId).HasDatabaseName("IX_WaterReadings_WaterMeterId");
+        b.HasIndex(x => x.ReadingDate).HasDatabaseName("IX_WaterReadings_ReadingDate");
+
+        b.HasOne(x => x.WaterMeter)
+         .WithMany()
+         .HasForeignKey(x => x.WaterMeterId)
+         .OnDelete(DeleteBehavior.Restrict);
     }
 }

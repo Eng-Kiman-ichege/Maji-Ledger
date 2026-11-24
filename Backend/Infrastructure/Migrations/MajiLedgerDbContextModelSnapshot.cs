@@ -53,10 +53,26 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsOccupied")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<decimal>("MonthlyRent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<Guid?>("PropertyId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("UnitNumber")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid?>("UnitTypeId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -69,12 +85,72 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.HasIndex("BuildingId")
                         .HasDatabaseName("IX_Apartments_BuildingId");
 
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("IX_Apartments_PropertyId");
+
+                    b.HasIndex("UnitTypeId")
+                        .HasDatabaseName("IX_Apartments_UnitTypeId");
+
                     b.HasIndex("BuildingId", "UnitNumber")
                         .IsUnique()
                         .HasDatabaseName("UIX_Apartments_BuildingId_UnitNumber_Active")
                         .HasFilter("[DeletedAt] IS NULL");
 
                     b.ToTable("Apartments", (string)null);
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.AppNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("RelatedEntityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RelatedEntityType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("IsRead");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AppNotifications", (string)null);
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.ApplicationUser", b =>
@@ -120,6 +196,9 @@ namespace MajiLedger.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -136,6 +215,9 @@ namespace MajiLedger.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_ApplicationUsers_PhoneNumber");
 
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("IX_ApplicationUsers_TenantId");
+
                     b.ToTable("ApplicationUsers", (string)null);
                 });
 
@@ -145,6 +227,10 @@ namespace MajiLedger.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<string>("BuildingCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -162,6 +248,11 @@ namespace MajiLedger.Infrastructure.Migrations
 
                     b.Property<int?>("FloorCount")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -193,6 +284,106 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.ToTable("Buildings", (string)null);
                 });
 
+            modelBuilder.Entity("MajiLedger.Domain.Entities.MaintenanceRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("AcknowledgedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("ActualCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("ApartmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AssignedTo")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid?>("BuildingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CancelledReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CompletionNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<decimal?>("EstimatedCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("TenancyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartmentId");
+
+                    b.HasIndex("BuildingId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("PropertyId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TenancyId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("MaintenanceRequests", (string)null);
+                });
+
             modelBuilder.Entity("MajiLedger.Domain.Entities.Meter", b =>
                 {
                     b.Property<Guid>("Id")
@@ -213,13 +404,39 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("InstallationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IntegrationType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<decimal?>("LastReading")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime?>("LastReadingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Manufacturer")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("MeterNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("SerialNumber")
                         .HasMaxLength(100)
@@ -346,6 +563,10 @@ namespace MajiLedger.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWSEQUENTIALID()");
 
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -446,6 +667,56 @@ namespace MajiLedger.Infrastructure.Migrations
                         .HasDatabaseName("UIX_Payments_ProviderRef");
 
                     b.ToTable("Payments", (string)null);
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.PaymentAllocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<decimal>("AllocatedAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("AllocatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsReversed")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("RentChargeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RentPaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReversedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RentChargeId")
+                        .HasDatabaseName("IX_PaymentAllocations_RentChargeId");
+
+                    b.HasIndex("RentPaymentId")
+                        .HasDatabaseName("IX_PaymentAllocations_RentPaymentId");
+
+                    b.ToTable("PaymentAllocations", (string)null);
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.PaymentAttempt", b =>
@@ -638,6 +909,10 @@ namespace MajiLedger.Infrastructure.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<string>("PropertyCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("Town")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -657,6 +932,11 @@ namespace MajiLedger.Infrastructure.Migrations
 
                     b.HasIndex("Name")
                         .HasDatabaseName("IX_Properties_Name");
+
+                    b.HasIndex("PropertyCode")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_Properties_PropertyCode")
+                        .HasFilter("[PropertyCode] IS NOT NULL");
 
                     b.HasIndex("County", "Town")
                         .HasDatabaseName("IX_Properties_County_Town");
@@ -868,6 +1148,338 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.ToTable("QrCodeRegistrations", (string)null);
                 });
 
+            modelBuilder.Entity("MajiLedger.Domain.Entities.ReconciliationDiscrepancy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DiscrepancyReason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("ExternalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("InternalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ResolutionNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ResolvedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TransactionReference")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TransactionReference");
+
+                    b.ToTable("ReconciliationDiscrepancies", (string)null);
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.ReconciliationSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("DiscrepancyAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("LedgerType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MatchedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("PeriodFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("PeriodTo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("PropertyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ReconciledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReconciledBy")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalExternalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalInternalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UnmatchedCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("PropertyId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("ReconciliationSessions", (string)null);
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.RentCharge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AmountPaid")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("ApartmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("BillingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("BillingPeriod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ChargeReference")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid>("TenancyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartmentId")
+                        .HasDatabaseName("IX_RentCharges_ApartmentId");
+
+                    b.HasIndex("ChargeReference")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_RentCharges_ChargeReference");
+
+                    b.HasIndex("DueDate")
+                        .HasDatabaseName("IX_RentCharges_DueDate");
+
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("IX_RentCharges_PropertyId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_RentCharges_Status");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("IX_RentCharges_TenantId");
+
+                    b.HasIndex("TenancyId", "BillingPeriod")
+                        .HasDatabaseName("IX_RentCharges_Tenancy_BillingPeriod");
+
+                    b.ToTable("RentCharges", (string)null);
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.RentPayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AmountAllocated")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("ApartmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("PayerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PayerPhoneNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("PaymentReference")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReceiptNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RecordedByUserId")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReversedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("TenancyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TransactionReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartmentId")
+                        .HasDatabaseName("IX_RentPayments_ApartmentId");
+
+                    b.HasIndex("PaymentDate")
+                        .HasDatabaseName("IX_RentPayments_PaymentDate");
+
+                    b.HasIndex("PaymentReference")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_RentPayments_PaymentReference");
+
+                    b.HasIndex("PaymentStatus")
+                        .HasDatabaseName("IX_RentPayments_PaymentStatus");
+
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("IX_RentPayments_PropertyId");
+
+                    b.HasIndex("ReceiptNumber")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_RentPayments_ReceiptNumber");
+
+                    b.HasIndex("TenancyId")
+                        .HasDatabaseName("IX_RentPayments_TenancyId");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("IX_RentPayments_TenantId");
+
+                    b.HasIndex("TransactionReference")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_RentPayments_TransactionReference_Confirmed")
+                        .HasFilter("[TransactionReference] IS NOT NULL AND [PaymentStatus] = 'Confirmed'");
+
+                    b.ToTable("RentPayments", (string)null);
+                });
+
             modelBuilder.Entity("MajiLedger.Domain.Entities.SharedMeterBillingPoint", b =>
                 {
                     b.Property<Guid>("Id")
@@ -968,6 +1580,54 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.ToTable("SmsDeliveryRecords", (string)null);
                 });
 
+            modelBuilder.Entity("MajiLedger.Domain.Entities.SystemSetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsEncrypted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("SystemSettings", (string)null);
+                });
+
             modelBuilder.Entity("MajiLedger.Domain.Entities.TariffTier", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1012,8 +1672,22 @@ namespace MajiLedger.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWSEQUENTIALID()");
 
+                    b.Property<DateTime?>("ActualEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AgreementNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<Guid>("ApartmentId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BillingFrequency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Monthly");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -1022,12 +1696,23 @@ namespace MajiLedger.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTime?>("EndDate")
+                    b.Property<DateTime?>("ExpectedEndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                    b.Property<decimal>("MonthlyRent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int>("RentPaymentDueDay")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<decimal>("SecurityDeposit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -1036,6 +1721,10 @@ namespace MajiLedger.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TenancyReference")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uniqueidentifier");
@@ -1050,9 +1739,61 @@ namespace MajiLedger.Infrastructure.Migrations
                         .HasDatabaseName("UIX_Tenancies_ApartmentId_Active")
                         .HasFilter("[Status] = 'Active'");
 
+                    b.HasIndex("TenancyReference")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_Tenancies_TenancyReference")
+                        .HasFilter("[TenancyReference] IS NOT NULL");
+
                     b.HasIndex("TenantId");
 
                     b.ToTable("Tenancies", (string)null);
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.TenancyTenant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsPrimaryTenant")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LeftAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("TenancyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenancyId", "IsPrimaryTenant")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_TenancyTenants_PrimaryTenant_Active")
+                        .HasFilter("[IsPrimaryTenant] = 1 AND [LeftAt] IS NULL");
+
+                    b.HasIndex("TenancyId", "TenantId")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_TenancyTenants_Tenancy_Tenant_Active")
+                        .HasFilter("[LeftAt] IS NULL");
+
+                    b.ToTable("TenancyTenants", (string)null);
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.Tenant", b =>
@@ -1061,6 +1802,14 @@ namespace MajiLedger.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("AlternativePhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -1076,6 +1825,11 @@ namespace MajiLedger.Infrastructure.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("nvarchar(320)");
 
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -1088,6 +1842,15 @@ namespace MajiLedger.Infrastructure.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("MiddleName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NationalId")
                         .HasMaxLength(20)
@@ -1104,12 +1867,99 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("NationalId")
+                        .HasDatabaseName("IX_Tenants_NationalId");
 
                     b.HasIndex("PhoneNumber")
                         .HasDatabaseName("IX_Tenants_PhoneNumber");
 
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_Tenants_UserId");
+
                     b.ToTable("Tenants", (string)null);
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.TenantCredit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreditReference")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("OriginalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("RemainingCredit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("SourcePaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid?>("TenancyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UtilizedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreditReference")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_TenantCredits_CreditReference");
+
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("IX_TenantCredits_PropertyId");
+
+                    b.HasIndex("SourcePaymentId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_TenantCredits_Status");
+
+                    b.HasIndex("TenancyId");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("IX_TenantCredits_TenantId");
+
+                    b.ToTable("TenantCredits", (string)null);
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.TokenGenerationAttempt", b =>
@@ -1214,6 +2064,47 @@ namespace MajiLedger.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("MajiLedger.Domain.Entities.UnitType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_UnitTypes_Name");
+
+                    b.ToTable("UnitTypes", (string)null);
+                });
+
             modelBuilder.Entity("MajiLedger.Domain.Entities.WaterPurchase", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1260,6 +2151,58 @@ namespace MajiLedger.Infrastructure.Migrations
                         .HasDatabaseName("IX_WaterPurchases_TariffId");
 
                     b.ToTable("WaterPurchases", (string)null);
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.WaterReading", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<decimal>("Consumption")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("CurrentReading")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("PreviousReading")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime>("ReadingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReadingSource")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("RecordedByUserId")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("WaterMeterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReadingDate")
+                        .HasDatabaseName("IX_WaterReadings_ReadingDate");
+
+                    b.HasIndex("WaterMeterId")
+                        .HasDatabaseName("IX_WaterReadings_WaterMeterId");
+
+                    b.ToTable("WaterReadings", (string)null);
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.WaterTariff", b =>
@@ -1383,6 +2326,118 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.ToTable("WaterTokens", (string)null);
                 });
 
+            modelBuilder.Entity("MajiLedger.Domain.Entities.WaterTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExternalTransactionReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TokenStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("TokenValue")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionReference")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("UnitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitsPurchased")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("WaterMeterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExternalTransactionReference")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_WaterTransactions_ExternalRef_Confirmed")
+                        .HasFilter("[ExternalTransactionReference] IS NOT NULL AND [PaymentStatus] = 'Confirmed'");
+
+                    b.HasIndex("PaymentStatus")
+                        .HasDatabaseName("IX_WaterTransactions_PaymentStatus");
+
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("IX_WaterTransactions_PropertyId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TokenStatus")
+                        .HasDatabaseName("IX_WaterTransactions_TokenStatus");
+
+                    b.HasIndex("TransactionDate")
+                        .HasDatabaseName("IX_WaterTransactions_TransactionDate");
+
+                    b.HasIndex("TransactionReference")
+                        .IsUnique()
+                        .HasDatabaseName("UIX_WaterTransactions_TransactionReference");
+
+                    b.HasIndex("UnitId")
+                        .HasDatabaseName("IX_WaterTransactions_UnitId");
+
+                    b.HasIndex("WaterMeterId")
+                        .HasDatabaseName("IX_WaterTransactions_WaterMeterId");
+
+                    b.ToTable("WaterTransactions", (string)null);
+                });
+
             modelBuilder.Entity("MajiLedger.Domain.Entities.Apartment", b =>
                 {
                     b.HasOne("MajiLedger.Domain.Entities.Building", "Building")
@@ -1391,7 +2446,39 @@ namespace MajiLedger.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("MajiLedger.Domain.Entities.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MajiLedger.Domain.Entities.UnitType", "UnitType")
+                        .WithMany("Apartments")
+                        .HasForeignKey("UnitTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Building");
+
+                    b.Navigation("Property");
+
+                    b.Navigation("UnitType");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.AppNotification", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.Owner", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MajiLedger.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.ApplicationUser", b =>
@@ -1401,7 +2488,14 @@ namespace MajiLedger.Infrastructure.Migrations
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("MajiLedger.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Owner");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.Building", b =>
@@ -1413,6 +2507,45 @@ namespace MajiLedger.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Property");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.MaintenanceRequest", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.Apartment", "Apartment")
+                        .WithMany()
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MajiLedger.Domain.Entities.Building", "Building")
+                        .WithMany()
+                        .HasForeignKey("BuildingId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MajiLedger.Domain.Entities.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.Tenancy", "Tenancy")
+                        .WithMany()
+                        .HasForeignKey("TenancyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MajiLedger.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Apartment");
+
+                    b.Navigation("Building");
+
+                    b.Navigation("Property");
+
+                    b.Navigation("Tenancy");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.Meter", b =>
@@ -1471,6 +2604,25 @@ namespace MajiLedger.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("PaymentAttempt");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.PaymentAllocation", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.RentCharge", "RentCharge")
+                        .WithMany("Allocations")
+                        .HasForeignKey("RentChargeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.RentPayment", "RentPayment")
+                        .WithMany("Allocations")
+                        .HasForeignKey("RentPaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RentCharge");
+
+                    b.Navigation("RentPayment");
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.PaymentAttempt", b =>
@@ -1561,8 +2713,8 @@ namespace MajiLedger.Infrastructure.Migrations
             modelBuilder.Entity("MajiLedger.Domain.Entities.QrCodeRegistration", b =>
                 {
                     b.HasOne("MajiLedger.Domain.Entities.Meter", "Meter")
-                        .WithOne("ActiveQrCode")
-                        .HasForeignKey("MajiLedger.Domain.Entities.QrCodeRegistration", "MeterId")
+                        .WithMany("QrCodes")
+                        .HasForeignKey("MeterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1575,6 +2727,97 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.Navigation("Meter");
 
                     b.Navigation("PaymentProviderConfig");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.ReconciliationDiscrepancy", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.ReconciliationSession", "Session")
+                        .WithMany("Discrepancies")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.ReconciliationSession", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Property");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.RentCharge", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.Apartment", "Apartment")
+                        .WithMany()
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.Tenancy", "Tenancy")
+                        .WithMany()
+                        .HasForeignKey("TenancyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Apartment");
+
+                    b.Navigation("Property");
+
+                    b.Navigation("Tenancy");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.RentPayment", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.Apartment", "Apartment")
+                        .WithMany()
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.Tenancy", "Tenancy")
+                        .WithMany()
+                        .HasForeignKey("TenancyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Apartment");
+
+                    b.Navigation("Property");
+
+                    b.Navigation("Tenancy");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.SharedMeterBillingPoint", b =>
@@ -1637,6 +2880,68 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("MajiLedger.Domain.Entities.TenancyTenant", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.Tenancy", "Tenancy")
+                        .WithMany("Tenants")
+                        .HasForeignKey("TenancyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.Tenant", "Tenant")
+                        .WithMany("TenancyAssignments")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Tenancy");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.Tenant", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.TenantCredit", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.RentPayment", "SourcePayment")
+                        .WithMany()
+                        .HasForeignKey("SourcePaymentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MajiLedger.Domain.Entities.Tenancy", "Tenancy")
+                        .WithMany()
+                        .HasForeignKey("TenancyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MajiLedger.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Property");
+
+                    b.Navigation("SourcePayment");
+
+                    b.Navigation("Tenancy");
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("MajiLedger.Domain.Entities.TokenGenerationAttempt", b =>
                 {
                     b.HasOne("MajiLedger.Domain.Entities.WaterPurchase", "WaterPurchase")
@@ -1674,6 +2979,17 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.Navigation("Tariff");
                 });
 
+            modelBuilder.Entity("MajiLedger.Domain.Entities.WaterReading", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.Meter", "WaterMeter")
+                        .WithMany()
+                        .HasForeignKey("WaterMeterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("WaterMeter");
+                });
+
             modelBuilder.Entity("MajiLedger.Domain.Entities.WaterTariff", b =>
                 {
                     b.HasOne("MajiLedger.Domain.Entities.Property", "Property")
@@ -1693,6 +3009,40 @@ namespace MajiLedger.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("WaterPurchase");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.WaterTransaction", b =>
+                {
+                    b.HasOne("MajiLedger.Domain.Entities.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MajiLedger.Domain.Entities.Apartment", "Unit")
+                        .WithMany()
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MajiLedger.Domain.Entities.Meter", "WaterMeter")
+                        .WithMany()
+                        .HasForeignKey("WaterMeterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Property");
+
+                    b.Navigation("Tenant");
+
+                    b.Navigation("Unit");
+
+                    b.Navigation("WaterMeter");
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.Apartment", b =>
@@ -1716,11 +3066,11 @@ namespace MajiLedger.Infrastructure.Migrations
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.Meter", b =>
                 {
-                    b.Navigation("ActiveQrCode");
-
                     b.Navigation("Assignments");
 
                     b.Navigation("PaymentAttempts");
+
+                    b.Navigation("QrCodes");
 
                     b.Navigation("Readings");
 
@@ -1773,9 +3123,36 @@ namespace MajiLedger.Infrastructure.Migrations
                     b.Navigation("PaymentAttempts");
                 });
 
+            modelBuilder.Entity("MajiLedger.Domain.Entities.ReconciliationSession", b =>
+                {
+                    b.Navigation("Discrepancies");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.RentCharge", b =>
+                {
+                    b.Navigation("Allocations");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.RentPayment", b =>
+                {
+                    b.Navigation("Allocations");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.Tenancy", b =>
+                {
+                    b.Navigation("Tenants");
+                });
+
             modelBuilder.Entity("MajiLedger.Domain.Entities.Tenant", b =>
                 {
                     b.Navigation("Tenancies");
+
+                    b.Navigation("TenancyAssignments");
+                });
+
+            modelBuilder.Entity("MajiLedger.Domain.Entities.UnitType", b =>
+                {
+                    b.Navigation("Apartments");
                 });
 
             modelBuilder.Entity("MajiLedger.Domain.Entities.WaterPurchase", b =>

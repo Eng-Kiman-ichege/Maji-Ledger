@@ -27,6 +27,21 @@ const STATUS_STYLE: Record<MeterStatus, { color: string; bg: string; border: str
     bg: "#fff1f2",
     border: "#fecdd3",
   },
+  Faulty: {
+    color: "#dc2626",
+    bg: "#fef2f2",
+    border: "#fecaca",
+  },
+  Disconnected: {
+    color: "#9333ea",
+    bg: "#faf5ff",
+    border: "#e9d5ff",
+  },
+  UnderMaintenance: {
+    color: "#0284c7",
+    bg: "#f0f9ff",
+    border: "#bae6fd",
+  },
 };
 
 function MeterStatusBadge({ status }: { status: MeterStatus }) {

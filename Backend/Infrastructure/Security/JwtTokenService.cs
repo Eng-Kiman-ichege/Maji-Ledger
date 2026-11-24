@@ -41,6 +41,7 @@ public class JwtTokenService(IConfiguration configuration) : IJwtTokenService
             new(ClaimTypes.Role, user.Role.ToString()),
             new("role", user.Role.ToString()),
             new("ownerId", user.OwnerId?.ToString() ?? string.Empty),
+            new("tenantId", user.TenantId?.ToString() ?? string.Empty),
             new("propertyIds", string.Join(",", propertyIdsList))
         };
 

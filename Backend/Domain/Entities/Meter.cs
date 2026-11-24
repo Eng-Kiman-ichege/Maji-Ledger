@@ -11,8 +11,15 @@ public class Meter : AuditableEntity
 {
     public string MeterNumber { get; private set; } = default!;
     public string? SerialNumber { get; private set; }
+    public string? Manufacturer { get; private set; }
+    public string? Model { get; private set; }
     public MeterType Type { get; private set; } = MeterType.Prepaid;
+    public MeterIntegrationType IntegrationType { get; private set; } = MeterIntegrationType.ApiIntegrated;
     public MeterStatus Status { get; private set; } = MeterStatus.Active;
+    public DateTime? InstallationDate { get; private set; }
+    public decimal? LastReading { get; private set; }
+    public DateTime? LastReadingDate { get; private set; }
+    public string? Notes { get; private set; }
 
     /// <summary>Denormalized current apartment for fast QR resolution. Updated via <see cref="MeterAssignment"/>.</summary>
     public Guid? CurrentApartmentId { get; private set; }
@@ -43,7 +50,12 @@ public class Meter : AuditableEntity
         MeterType type = MeterType.Prepaid,
         string? serialNumber = null,
         Guid? currentApartmentId = null,
-        string? createdBy = null)
+        string? createdBy = null,
+        string? manufacturer = null,
+        string? model = null,
+        MeterIntegrationType integrationType = MeterIntegrationType.ApiIntegrated,
+        DateTime? installationDate = null,
+        string? notes = null)
     {
         return new Meter
         {
@@ -51,8 +63,46 @@ public class Meter : AuditableEntity
             Type = type,
             SerialNumber = serialNumber,
             CurrentApartmentId = currentApartmentId,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
+            Manufacturer = manufacturer,
+            Model = model,
+            IntegrationType = integrationType,
+            InstallationDate = installationDate ?? DateTime.UtcNow,
+            Notes = notes,
+            Status = MeterStatus.Active
         };
+    }
+
+    public void UpdateDetails(
+        string? serialNumber,
+        string? manufacturer,
+        string? model,
+        MeterType type,
+        MeterIntegrationType integrationType,
+        DateTime? installationDate,
+        string? notes,
+        string? updatedBy = null)
+    {
+        SerialNumber = serialNumber;
+        Manufacturer = manufacturer;
+        Model = model;
+        Type = type;
+        IntegrationType = integrationType;
+        if (installationDate.HasValue) InstallationDate = installationDate.Value;
+        Notes = notes;
+        UpdatedBy = updatedBy;
+        MarkUpdated();
+    }
+
+    public void RecordReading(decimal readingValue, DateTime readAt, string? updatedBy = null)
+    {
+        if (readingValue < 0)
+            throw new ArgumentOutOfRangeException(nameof(readingValue), "Reading cannot be negative.");
+
+        LastReading = readingValue;
+        LastReadingDate = readAt;
+        UpdatedBy = updatedBy;
+        MarkUpdated();
     }
 
     public void AssignToApartment(Guid apartmentId, string? updatedBy = null)

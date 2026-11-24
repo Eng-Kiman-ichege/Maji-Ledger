@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function AuthGuard({ allowedRoles, children }: Props) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, activeSuite } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -26,9 +26,11 @@ export default function AuthGuard({ allowedRoles, children }: Props) {
     if (allowedRoles && !allowedRoles.includes(user.role)) {
       // Redirect to the role-appropriate dashboard
       if (user.role === "Owner") {
-        router.replace("/dashboard/owner");
+        router.replace(activeSuite === "water" ? "/dashboard/landlord/water" : "/dashboard/landlord");
+      } else if (user.role === "Tenant") {
+        router.replace(activeSuite === "water" ? "/dashboard/tenant/water" : "/dashboard/tenant");
       } else {
-        router.replace("/dashboard");
+        router.replace(activeSuite === "water" ? "/dashboard/water" : "/dashboard");
       }
     }
   }, [user, isLoading, router, allowedRoles]);

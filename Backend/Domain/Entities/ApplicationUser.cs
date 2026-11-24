@@ -21,8 +21,12 @@ public class ApplicationUser : BaseEntity
     /// <summary>Optional link to an <see cref="Owner"/> profile when this user is a property owner.</summary>
     public Guid? OwnerId { get; private set; }
 
+    /// <summary>Optional link to a <see cref="Tenant"/> profile when this user is a tenant.</summary>
+    public Guid? TenantId { get; private set; }
+
     // Navigation
     public Owner? Owner { get; private set; }
+    public Tenant? Tenant { get; private set; }
     public ICollection<PropertyAccess> PropertyAccesses { get; private set; } = [];
 
     private ApplicationUser() { }
@@ -33,7 +37,8 @@ public class ApplicationUser : BaseEntity
         string fullName,
         string passwordHash,
         UserRole role,
-        Guid? ownerId = null)
+        Guid? ownerId = null,
+        Guid? tenantId = null)
     {
         return new ApplicationUser
         {
@@ -42,11 +47,21 @@ public class ApplicationUser : BaseEntity
             FullName = fullName,
             PasswordHash = passwordHash,
             Role = role,
-            OwnerId = ownerId
+            OwnerId = ownerId,
+            TenantId = tenantId
         };
     }
 
+    public void Activate() { IsActive = true; MarkUpdated(); }
     public void Deactivate() { IsActive = false; MarkUpdated(); }
     public void UpdatePassword(string newHash) { PasswordHash = newHash; MarkUpdated(); }
+    public void UpdateProfile(string fullName, string phoneNumber)
+    {
+        FullName = fullName.Trim();
+        PhoneNumber = phoneNumber.Trim();
+        MarkUpdated();
+    }
+    public void AssignRole(UserRole role) { Role = role; MarkUpdated(); }
     public void LinkToOwner(Guid ownerId) { OwnerId = ownerId; MarkUpdated(); }
+    public void LinkToTenant(Guid tenantId) { TenantId = tenantId; MarkUpdated(); }
 }

@@ -23,15 +23,19 @@ public class MajiLedgerDbContext : DbContext, IApplicationDbContext
     public DbSet<Property>              Properties             => Set<Property>();
     public DbSet<PropertyOwnership>     PropertyOwnerships     => Set<PropertyOwnership>();
     public DbSet<Building>              Buildings              => Set<Building>();
+    public DbSet<UnitType>              UnitTypes              => Set<UnitType>();
     public DbSet<Apartment>             Apartments             => Set<Apartment>();
     public DbSet<Tenant>                Tenants                => Set<Tenant>();
     public DbSet<Tenancy>               Tenancies              => Set<Tenancy>();
+    public DbSet<TenancyTenant>         TenancyTenants         => Set<TenancyTenant>();
 
     // ── Meter Domain ──────────────────────────────────────────────────────────
     public DbSet<Meter>                 Meters                 => Set<Meter>();
     public DbSet<MeterAssignment>       MeterAssignments       => Set<MeterAssignment>();
     public DbSet<SharedMeterBillingPoint> SharedMeterBillingPoints => Set<SharedMeterBillingPoint>();
     public DbSet<MeterReading>          MeterReadings          => Set<MeterReading>();
+    public DbSet<WaterReading>          WaterReadings          => Set<WaterReading>();
+    public DbSet<WaterTransaction>      WaterTransactions      => Set<WaterTransaction>();
 
     // ── Tariff Domain ─────────────────────────────────────────────────────────
     public DbSet<WaterTariff>           WaterTariffs           => Set<WaterTariff>();
@@ -42,6 +46,12 @@ public class MajiLedgerDbContext : DbContext, IApplicationDbContext
     public DbSet<QrCodeRegistration>    QrCodeRegistrations    => Set<QrCodeRegistration>();
     public DbSet<QrCodeAuditLog>        QrCodeAuditLogs        => Set<QrCodeAuditLog>();
 
+    // ── Rent Ledger Domain ────────────────────────────────────────────────────
+    public DbSet<RentCharge>            RentCharges            => Set<RentCharge>();
+    public DbSet<RentPayment>           RentPayments           => Set<RentPayment>();
+    public DbSet<PaymentAllocation>     PaymentAllocations     => Set<PaymentAllocation>();
+    public DbSet<TenantCredit>          TenantCredits          => Set<TenantCredit>();
+
     // ── Transaction Domain ────────────────────────────────────────────────────
     public DbSet<PaymentAttempt>        PaymentAttempts        => Set<PaymentAttempt>();
     public DbSet<Payment>               Payments               => Set<Payment>();
@@ -50,6 +60,15 @@ public class MajiLedgerDbContext : DbContext, IApplicationDbContext
     public DbSet<TokenGenerationAttempt> TokenGenerationAttempts => Set<TokenGenerationAttempt>();
     public DbSet<SmsDeliveryRecord>     SmsDeliveryRecords     => Set<SmsDeliveryRecord>();
     public DbSet<TransactionAuditLog>   TransactionAuditLogs   => Set<TransactionAuditLog>();
+
+    // ── Landlord Portal ───────────────────────────────────────────────────────
+    public DbSet<MaintenanceRequest>    MaintenanceRequests    => Set<MaintenanceRequest>();
+    public DbSet<AppNotification>       AppNotifications       => Set<AppNotification>();
+
+    // ── Financial Reconciliation & Platform Operations ─────────────────────────
+    public DbSet<ReconciliationSession> ReconciliationSessions => Set<ReconciliationSession>();
+    public DbSet<ReconciliationDiscrepancy> ReconciliationDiscrepancies => Set<ReconciliationDiscrepancy>();
+    public DbSet<SystemSetting>         SystemSettings         => Set<SystemSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

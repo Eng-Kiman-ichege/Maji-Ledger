@@ -90,6 +90,29 @@ export default function UsersClient() {
     setPassword(pwd);
   };
 
+  const handleToggleActive = async (userId: string) => {
+    try {
+      await api.post(`/api/v1/users/${userId}/toggle-active`, {});
+      fetchData();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to toggle user status.");
+    }
+  };
+
+  const handleResetPassword = async (userId: string, email: string) => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+    let newTemp = "";
+    for (let i = 0; i < 12; i++) {
+      newTemp += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    try {
+      await api.post(`/api/v1/users/${userId}/reset-password`, { newPassword: newTemp });
+      alert(`Temporary password for ${email} generated:\n${newTemp}\nPlease share securely with the user.`);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to reset password.");
+    }
+  };
+
   const handleOpenModal = () => {
     setFullName("");
     setEmail("");
@@ -341,6 +364,9 @@ export default function UsersClient() {
                 <th style={{ textAlign: "left", padding: "14px 18px", color: "#475569", fontWeight: 700 }}>
                   Created Date
                 </th>
+                <th style={{ textAlign: "right", padding: "14px 18px", color: "#475569", fontWeight: 700 }}>
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -472,6 +498,43 @@ export default function UsersClient() {
                           month: "short",
                           year: "numeric",
                         })}
+                      </td>
+
+                      <td style={{ padding: "14px 18px", textAlign: "right" }}>
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: 6 }}>
+                          <button
+                            onClick={() => handleToggleActive(u.id)}
+                            title={u.isActive ? "Deactivate user" : "Activate user"}
+                            style={{
+                              padding: "4px 8px",
+                              fontSize: 11,
+                              fontWeight: 600,
+                              borderRadius: 6,
+                              border: "1px solid #cbd5e1",
+                              background: u.isActive ? "#fef2f2" : "#f0fdf4",
+                              color: u.isActive ? "#b91c1c" : "#166534",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {u.isActive ? "Deactivate" : "Activate"}
+                          </button>
+                          <button
+                            onClick={() => handleResetPassword(u.id, u.email)}
+                            title="Reset password"
+                            style={{
+                              padding: "4px 8px",
+                              fontSize: 11,
+                              fontWeight: 600,
+                              borderRadius: 6,
+                              border: "1px solid #bae6fd",
+                              background: "#f0f9ff",
+                              color: "#0369a1",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Reset Pwd
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

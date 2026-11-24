@@ -30,6 +30,15 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
         }
     }
 
+    public Guid? TenantId
+    {
+        get
+        {
+            var val = User?.FindFirst("tenantId")?.Value;
+            return Guid.TryParse(val, out var id) ? id : null;
+        }
+    }
+
     public IReadOnlyList<Guid> AuthorizedPropertyIds
     {
         get

@@ -29,6 +29,14 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
          .HasForeignKey(x => x.OwnerId)
          .OnDelete(DeleteBehavior.SetNull)
          .IsRequired(false);
+
+        b.HasOne(x => x.Tenant)
+         .WithMany()
+         .HasForeignKey(x => x.TenantId)
+         .OnDelete(DeleteBehavior.SetNull)
+         .IsRequired(false);
+
+        b.HasIndex(x => x.TenantId).HasDatabaseName("IX_ApplicationUsers_TenantId");
     }
 }
 

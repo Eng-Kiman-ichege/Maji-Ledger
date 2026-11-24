@@ -13,6 +13,7 @@ public class CurrentUserService : ICurrentUserService
     public string? Role => "Admin";
     public bool IsAuthenticated => true;
     public Guid? OwnerId => null;
+    public Guid? TenantId => null;
     public IReadOnlyList<Guid> AuthorizedPropertyIds => Array.Empty<Guid>();
     public IReadOnlyList<string> Permissions => Array.Empty<string>();
     public IReadOnlyList<string> Modules => Array.Empty<string>();

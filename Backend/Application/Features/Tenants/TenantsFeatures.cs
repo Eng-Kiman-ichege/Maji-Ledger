@@ -11,115 +11,270 @@ namespace MajiLedger.Application.Features.Tenants;
 
 public record TenantDto(
     Guid Id,
+    string FirstName,
+    string? MiddleName,
+    string LastName,
     string FullName,
     string PhoneNumber,
+    string? AlternativePhoneNumber,
     string? Email,
     string? NationalId,
+    string? Address,
     bool IsActive,
-    int ActiveTenanciesCount);
+    Guid? UserId,
+    int ActiveTenanciesCount,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt);
 
-public record TenancyDto(
+public record TenantDetailDto(
     Guid Id,
-    Guid TenantId,
-    string TenantName,
-    string TenantPhone,
-    Guid ApartmentId,
+    string FirstName,
+    string? MiddleName,
+    string LastName,
+    string FullName,
+    string PhoneNumber,
+    string? AlternativePhoneNumber,
+    string? Email,
+    string? NationalId,
+    string? Address,
+    bool IsActive,
+    Guid? UserId,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt,
+    List<TenantTenancySummaryDto> TenancyHistory);
+
+public record TenantTenancySummaryDto(
+    Guid TenancyId,
+    Guid UnitId,
     string UnitNumber,
+    Guid PropertyId,
+    string PropertyName,
+    string? BuildingName,
+    string? TenancyReference,
     TenancyStatus Status,
     DateTime StartDate,
     DateTime? EndDate,
-    string? Notes);
+    decimal MonthlyRent,
+    bool IsPrimaryTenant,
+    DateTime JoinedAt,
+    DateTime? LeftAt);
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
-public record GetTenantsQuery : IRequest<List<TenantDto>>;
+public record GetTenantsQuery(
+    string? SearchTerm = null,
+    bool IncludeInactive = false) : IRequest<List<TenantDto>>;
 
-public record GetTenantQuery(Guid Id) : IRequest<TenantDto>;
+public record GetTenantQuery(Guid Id) : IRequest<TenantDetailDto>;
 
-public record GetApartmentTenanciesQuery(Guid ApartmentId) : IRequest<List<TenancyDto>>;
+public record GetTenantHistoryQuery(Guid TenantId) : IRequest<List<TenantTenancySummaryDto>>;
 
 // ── Commands ──────────────────────────────────────────────────────────────────
 
 public record CreateTenantCommand(
-    string FullName,
+    string FirstName,
+    string LastName,
     string PhoneNumber,
+    string? MiddleName = null,
     string? Email = null,
     string? NationalId = null,
+    string? AlternativePhoneNumber = null,
+    string? Address = null,
+    Guid? UserId = null,
     string? CreatedBy = null) : IRequest<Guid>;
 
-public record CreateTenancyCommand(
-    Guid TenantId,
-    Guid ApartmentId,
-    DateTime? StartDate = null,
-    string? CreatedBy = null) : IRequest<Guid>;
+public record UpdateTenantCommand(
+    Guid Id,
+    string FirstName,
+    string LastName,
+    string PhoneNumber,
+    string? MiddleName = null,
+    string? Email = null,
+    string? NationalId = null,
+    string? AlternativePhoneNumber = null,
+    string? Address = null,
+    string? UpdatedBy = null) : IRequest<Unit>;
 
-public record EndTenancyCommand(
-    Guid TenancyId,
-    string? Notes = null) : IRequest<Unit>;
+public record ActivateTenantCommand(Guid Id, string? UpdatedBy = null) : IRequest<Unit>;
+
+public record DeactivateTenantCommand(Guid Id, string? UpdatedBy = null) : IRequest<Unit>;
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
-public class GetTenantsHandler(IApplicationDbContext db)
+public class GetTenantsHandler(IApplicationDbContext db, ICurrentUserService currentUser)
     : IRequestHandler<GetTenantsQuery, List<TenantDto>>
 {
     public async Task<List<TenantDto>> Handle(GetTenantsQuery request, CancellationToken ct)
-        => await db.Tenants
-            .Where(t => t.IsActive)
-            .OrderBy(t => t.FullName)
-            .Select(t => new TenantDto(
-                t.Id,
-                t.FullName,
-                t.PhoneNumber,
-                t.Email,
-                t.NationalId,
-                t.IsActive,
-                t.Tenancies.Count(ten => ten.Status == TenancyStatus.Active)))
-            .ToListAsync(ct);
-}
-
-public class GetTenantHandler(IApplicationDbContext db)
-    : IRequestHandler<GetTenantQuery, TenantDto>
-{
-    public async Task<TenantDto> Handle(GetTenantQuery request, CancellationToken ct)
     {
-        var tenant = await db.Tenants
-            .Where(t => t.Id == request.Id && t.IsActive)
+        var query = db.Tenants.AsQueryable();
+
+        if (!request.IncludeInactive)
+            query = query.Where(t => t.IsActive);
+
+        // Landlord authorization scoping
+        if (currentUser.OwnerId.HasValue && !currentUser.IsInRole("Admin") && !currentUser.IsInRole("PlatformAdmin"))
+        {
+            var assignedPropertyIds = await db.PropertyOwnerships
+                .Where(po => po.OwnerId == currentUser.OwnerId.Value && po.EffectiveTo == null)
+                .Select(po => po.PropertyId)
+                .ToListAsync(ct);
+
+            // Restrict to tenants who have tenancies in landlord's properties
+            var tenantIds = await db.Tenancies
+                .Where(t => assignedPropertyIds.Contains(t.Apartment.Building.PropertyId))
+                .SelectMany(t => t.Tenants.Select(tt => tt.TenantId))
+                .Distinct()
+                .ToListAsync(ct);
+
+            query = query.Where(t => tenantIds.Contains(t.Id));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            var term = request.SearchTerm.Trim().ToLower();
+            query = query.Where(t =>
+                t.FullName.ToLower().Contains(term) ||
+                t.PhoneNumber.Contains(term) ||
+                (t.NationalId != null && t.NationalId.Contains(term)) ||
+                (t.Email != null && t.Email.ToLower().Contains(term)));
+        }
+
+        return await query
+            .OrderBy(t => t.LastName)
+            .ThenBy(t => t.FirstName)
             .Select(t => new TenantDto(
                 t.Id,
+                t.FirstName,
+                t.MiddleName,
+                t.LastName,
                 t.FullName,
                 t.PhoneNumber,
+                t.AlternativePhoneNumber,
                 t.Email,
                 t.NationalId,
+                t.Address,
                 t.IsActive,
-                t.Tenancies.Count(ten => ten.Status == TenancyStatus.Active)))
-            .FirstOrDefaultAsync(ct)
-            ?? throw new NotFoundException(nameof(Tenant), request.Id);
-
-        return tenant;
+                t.UserId,
+                t.TenancyAssignments.Count(ta => ta.LeftAt == null && ta.Tenancy.Status == TenancyStatus.Active),
+                t.CreatedAt,
+                t.UpdatedAt))
+            .ToListAsync(ct);
     }
 }
 
-public class GetApartmentTenanciesHandler(IApplicationDbContext db)
-    : IRequestHandler<GetApartmentTenanciesQuery, List<TenancyDto>>
+public class GetTenantHandler(IApplicationDbContext db, ICurrentUserService currentUser)
+    : IRequestHandler<GetTenantQuery, TenantDetailDto>
 {
-    public async Task<List<TenancyDto>> Handle(GetApartmentTenanciesQuery request, CancellationToken ct)
-        => await db.Tenancies
-            .Where(t => t.ApartmentId == request.ApartmentId)
-            .Include(t => t.Tenant)
-            .Include(t => t.Apartment)
-            .OrderByDescending(t => t.StartDate)
-            .Select(t => new TenancyDto(
-                t.Id,
-                t.TenantId,
-                t.Tenant.FullName,
-                t.Tenant.PhoneNumber,
-                t.ApartmentId,
-                t.Apartment.UnitNumber,
-                t.Status,
-                t.StartDate,
-                t.EndDate,
-                t.Notes))
+    public async Task<TenantDetailDto> Handle(GetTenantQuery request, CancellationToken ct)
+    {
+        var tenant = await db.Tenants
+            .Include(t => t.TenancyAssignments)
+                .ThenInclude(ta => ta.Tenancy)
+                    .ThenInclude(ten => ten.Apartment)
+                        .ThenInclude(apt => apt.Building)
+                            .ThenInclude(bld => bld.Property)
+            .FirstOrDefaultAsync(t => t.Id == request.Id, ct)
+            ?? throw new NotFoundException(nameof(Tenant), request.Id);
+
+        // Landlord authorization scoping
+        if (currentUser.OwnerId.HasValue && !currentUser.IsInRole("Admin") && !currentUser.IsInRole("PlatformAdmin"))
+        {
+            var assignedPropertyIds = await db.PropertyOwnerships
+                .Where(po => po.OwnerId == currentUser.OwnerId.Value && po.EffectiveTo == null)
+                .Select(po => po.PropertyId)
+                .ToListAsync(ct);
+
+            var hasAccess = tenant.TenancyAssignments
+                .Any(ta => assignedPropertyIds.Contains(ta.Tenancy.Apartment.Building.PropertyId));
+
+            if (!hasAccess)
+                throw new ForbiddenException("You are not authorized to view this tenant.");
+        }
+
+        var history = tenant.TenancyAssignments
+            .OrderByDescending(ta => ta.JoinedAt)
+            .Select(ta => new TenantTenancySummaryDto(
+                ta.TenancyId,
+                ta.Tenancy.ApartmentId,
+                ta.Tenancy.Apartment.UnitNumber,
+                ta.Tenancy.Apartment.Building.PropertyId,
+                ta.Tenancy.Apartment.Building.Property.Name,
+                ta.Tenancy.Apartment.Building.Name,
+                ta.Tenancy.TenancyReference,
+                ta.Tenancy.Status,
+                ta.Tenancy.StartDate,
+                ta.Tenancy.EndDate,
+                ta.Tenancy.MonthlyRent,
+                ta.IsPrimaryTenant,
+                ta.JoinedAt,
+                ta.LeftAt))
+            .ToList();
+
+        return new TenantDetailDto(
+            tenant.Id,
+            tenant.FirstName,
+            tenant.MiddleName,
+            tenant.LastName,
+            tenant.FullName,
+            tenant.PhoneNumber,
+            tenant.AlternativePhoneNumber,
+            tenant.Email,
+            tenant.NationalId,
+            tenant.Address,
+            tenant.IsActive,
+            tenant.UserId,
+            tenant.CreatedAt,
+            tenant.UpdatedAt,
+            history);
+    }
+}
+
+public class GetTenantHistoryHandler(IApplicationDbContext db, ICurrentUserService currentUser)
+    : IRequestHandler<GetTenantHistoryQuery, List<TenantTenancySummaryDto>>
+{
+    public async Task<List<TenantTenancySummaryDto>> Handle(GetTenantHistoryQuery request, CancellationToken ct)
+    {
+        if (!await db.Tenants.AnyAsync(t => t.Id == request.TenantId, ct))
+            throw new NotFoundException(nameof(Tenant), request.TenantId);
+
+        var query = db.TenancyTenants
+            .Where(tt => tt.TenantId == request.TenantId)
+            .Include(tt => tt.Tenancy)
+                .ThenInclude(ten => ten.Apartment)
+                    .ThenInclude(apt => apt.Building)
+                        .ThenInclude(bld => bld.Property)
+            .AsQueryable();
+
+        // Landlord authorization scoping
+        if (currentUser.OwnerId.HasValue && !currentUser.IsInRole("Admin") && !currentUser.IsInRole("PlatformAdmin"))
+        {
+            var assignedPropertyIds = await db.PropertyOwnerships
+                .Where(po => po.OwnerId == currentUser.OwnerId.Value && po.EffectiveTo == null)
+                .Select(po => po.PropertyId)
+                .ToListAsync(ct);
+
+            query = query.Where(tt => assignedPropertyIds.Contains(tt.Tenancy.Apartment.Building.PropertyId));
+        }
+
+        return await query
+            .OrderByDescending(tt => tt.JoinedAt)
+            .Select(tt => new TenantTenancySummaryDto(
+                tt.TenancyId,
+                tt.Tenancy.ApartmentId,
+                tt.Tenancy.Apartment.UnitNumber,
+                tt.Tenancy.Apartment.Building.PropertyId,
+                tt.Tenancy.Apartment.Building.Property.Name,
+                tt.Tenancy.Apartment.Building.Name,
+                tt.Tenancy.TenancyReference,
+                tt.Tenancy.Status,
+                tt.Tenancy.StartDate,
+                tt.Tenancy.EndDate,
+                tt.Tenancy.MonthlyRent,
+                tt.IsPrimaryTenant,
+                tt.JoinedAt,
+                tt.LeftAt))
             .ToListAsync(ct);
+    }
 }
 
 public class CreateTenantHandler(IApplicationDbContext db)
@@ -127,49 +282,104 @@ public class CreateTenantHandler(IApplicationDbContext db)
 {
     public async Task<Guid> Handle(CreateTenantCommand cmd, CancellationToken ct)
     {
-        if (await db.Tenants.AnyAsync(t => t.PhoneNumber == cmd.PhoneNumber && t.IsActive, ct))
-            throw new ConflictException($"A tenant with phone number '{cmd.PhoneNumber}' already exists.");
+        if (string.IsNullOrWhiteSpace(cmd.FirstName))
+            throw new ValidationException(nameof(cmd.FirstName), "First name is required.");
 
-        var tenant = Tenant.Create(cmd.FullName, cmd.PhoneNumber, cmd.Email, cmd.NationalId, cmd.CreatedBy);
+        if (string.IsNullOrWhiteSpace(cmd.LastName))
+            throw new ValidationException(nameof(cmd.LastName), "Last name is required.");
+
+        if (string.IsNullOrWhiteSpace(cmd.PhoneNumber))
+            throw new ValidationException(nameof(cmd.PhoneNumber), "Phone number is required.");
+
+        var trimmedPhone = cmd.PhoneNumber.Trim();
+        if (await db.Tenants.AnyAsync(t => t.PhoneNumber == trimmedPhone && t.IsActive, ct))
+            throw new ConflictException($"A tenant with phone number '{trimmedPhone}' already exists.");
+
+        var tenant = Tenant.Create(
+            cmd.FirstName,
+            cmd.LastName,
+            cmd.PhoneNumber,
+            cmd.MiddleName,
+            cmd.Email,
+            cmd.NationalId,
+            cmd.AlternativePhoneNumber,
+            cmd.Address,
+            cmd.UserId,
+            cmd.CreatedBy);
+
         db.Tenants.Add(tenant);
         await db.SaveChangesAsync(ct);
         return tenant.Id;
     }
 }
 
-public class CreateTenancyHandler(IApplicationDbContext db)
-    : IRequestHandler<CreateTenancyCommand, Guid>
+public class UpdateTenantHandler(IApplicationDbContext db)
+    : IRequestHandler<UpdateTenantCommand, Unit>
 {
-    public async Task<Guid> Handle(CreateTenancyCommand cmd, CancellationToken ct)
+    public async Task<Unit> Handle(UpdateTenantCommand cmd, CancellationToken ct)
     {
-        if (!await db.Tenants.AnyAsync(t => t.Id == cmd.TenantId && t.IsActive, ct))
-            throw new NotFoundException(nameof(Tenant), cmd.TenantId);
+        if (string.IsNullOrWhiteSpace(cmd.FirstName))
+            throw new ValidationException(nameof(cmd.FirstName), "First name is required.");
 
-        if (!await db.Apartments.AnyAsync(a => a.Id == cmd.ApartmentId && !a.IsDeleted, ct))
-            throw new NotFoundException(nameof(Apartment), cmd.ApartmentId);
+        if (string.IsNullOrWhiteSpace(cmd.LastName))
+            throw new ValidationException(nameof(cmd.LastName), "Last name is required.");
 
-        // Close any active tenancy for this apartment if replacing
-        var existingActive = await db.Tenancies
-            .FirstOrDefaultAsync(t => t.ApartmentId == cmd.ApartmentId && t.Status == TenancyStatus.Active, ct);
-        if (existingActive is not null)
-            existingActive.End("Ended by assignment of new tenant.");
+        if (string.IsNullOrWhiteSpace(cmd.PhoneNumber))
+            throw new ValidationException(nameof(cmd.PhoneNumber), "Phone number is required.");
 
-        var tenancy = Tenancy.Create(cmd.TenantId, cmd.ApartmentId, cmd.StartDate, cmd.CreatedBy);
-        db.Tenancies.Add(tenancy);
+        var tenant = await db.Tenants.FindAsync([cmd.Id], ct)
+            ?? throw new NotFoundException(nameof(Tenant), cmd.Id);
+
+        var trimmedPhone = cmd.PhoneNumber.Trim();
+        if (await db.Tenants.AnyAsync(t => t.PhoneNumber == trimmedPhone && t.Id != cmd.Id && t.IsActive, ct))
+            throw new ConflictException($"Another active tenant with phone number '{trimmedPhone}' already exists.");
+
+        tenant.Update(
+            cmd.FirstName,
+            cmd.LastName,
+            cmd.PhoneNumber,
+            cmd.MiddleName,
+            cmd.Email,
+            cmd.NationalId,
+            cmd.AlternativePhoneNumber,
+            cmd.Address,
+            cmd.UpdatedBy ?? "system");
+
         await db.SaveChangesAsync(ct);
-        return tenancy.Id;
+        return Unit.Value;
     }
 }
 
-public class EndTenancyHandler(IApplicationDbContext db)
-    : IRequestHandler<EndTenancyCommand, Unit>
+public class ActivateTenantHandler(IApplicationDbContext db)
+    : IRequestHandler<ActivateTenantCommand, Unit>
 {
-    public async Task<Unit> Handle(EndTenancyCommand cmd, CancellationToken ct)
+    public async Task<Unit> Handle(ActivateTenantCommand cmd, CancellationToken ct)
     {
-        var tenancy = await db.Tenancies.FindAsync([cmd.TenancyId], ct)
-            ?? throw new NotFoundException(nameof(Tenancy), cmd.TenancyId);
+        var tenant = await db.Tenants.FindAsync([cmd.Id], ct)
+            ?? throw new NotFoundException(nameof(Tenant), cmd.Id);
 
-        tenancy.End(cmd.Notes);
+        tenant.Activate(cmd.UpdatedBy ?? "system");
+        await db.SaveChangesAsync(ct);
+        return Unit.Value;
+    }
+}
+
+public class DeactivateTenantHandler(IApplicationDbContext db)
+    : IRequestHandler<DeactivateTenantCommand, Unit>
+{
+    public async Task<Unit> Handle(DeactivateTenantCommand cmd, CancellationToken ct)
+    {
+        var tenant = await db.Tenants.FindAsync([cmd.Id], ct)
+            ?? throw new NotFoundException(nameof(Tenant), cmd.Id);
+
+        // Check if tenant is currently active in any ongoing tenancy
+        var hasActiveTenancy = await db.TenancyTenants
+            .AnyAsync(tt => tt.TenantId == cmd.Id && tt.LeftAt == null && tt.Tenancy.Status == TenancyStatus.Active, ct);
+
+        if (hasActiveTenancy)
+            throw new ConflictException("Cannot deactivate a tenant who currently occupies an active tenancy.");
+
+        tenant.Deactivate(cmd.UpdatedBy ?? "system");
         await db.SaveChangesAsync(ct);
         return Unit.Value;
     }

@@ -7,6 +7,7 @@ public interface ICurrentUserService
     string? Role { get; }
     bool IsAuthenticated { get; }
     Guid? OwnerId { get; }
+    Guid? TenantId { get; }
     IReadOnlyList<Guid> AuthorizedPropertyIds { get; }
     IReadOnlyList<string> Permissions { get; }
     IReadOnlyList<string> Modules { get; }

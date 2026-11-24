@@ -18,15 +18,19 @@ public interface IApplicationDbContext
     DbSet<Property> Properties { get; }
     DbSet<PropertyOwnership> PropertyOwnerships { get; }
     DbSet<Building> Buildings { get; }
+    DbSet<UnitType> UnitTypes { get; }
     DbSet<Apartment> Apartments { get; }
     DbSet<Tenant> Tenants { get; }
     DbSet<Tenancy> Tenancies { get; }
+    DbSet<TenancyTenant> TenancyTenants { get; }
 
     // ── Meter Domain ──────────────────────────────────────────────────────────
     DbSet<Meter> Meters { get; }
     DbSet<MeterAssignment> MeterAssignments { get; }
     DbSet<SharedMeterBillingPoint> SharedMeterBillingPoints { get; }
     DbSet<MeterReading> MeterReadings { get; }
+    DbSet<WaterReading> WaterReadings { get; }
+    DbSet<WaterTransaction> WaterTransactions { get; }
 
     // ── Tariff Domain ─────────────────────────────────────────────────────────
     DbSet<WaterTariff> WaterTariffs { get; }
@@ -37,6 +41,12 @@ public interface IApplicationDbContext
     DbSet<QrCodeRegistration> QrCodeRegistrations { get; }
     DbSet<QrCodeAuditLog> QrCodeAuditLogs { get; }
 
+    // ── Rent Ledger Domain ────────────────────────────────────────────────────
+    DbSet<RentCharge> RentCharges { get; }
+    DbSet<RentPayment> RentPayments { get; }
+    DbSet<PaymentAllocation> PaymentAllocations { get; }
+    DbSet<TenantCredit> TenantCredits { get; }
+
     // ── Transaction Domain ────────────────────────────────────────────────────
     DbSet<PaymentAttempt> PaymentAttempts { get; }
     DbSet<Payment> Payments { get; }
@@ -45,6 +55,15 @@ public interface IApplicationDbContext
     DbSet<TokenGenerationAttempt> TokenGenerationAttempts { get; }
     DbSet<SmsDeliveryRecord> SmsDeliveryRecords { get; }
     DbSet<TransactionAuditLog> TransactionAuditLogs { get; }
+
+    // ── Landlord Portal ───────────────────────────────────────────────────────
+    DbSet<MaintenanceRequest> MaintenanceRequests { get; }
+    DbSet<AppNotification> AppNotifications { get; }
+
+    // ── Financial Reconciliation & Platform Operations ─────────────────────────
+    DbSet<ReconciliationSession> ReconciliationSessions { get; }
+    DbSet<ReconciliationDiscrepancy> ReconciliationDiscrepancies { get; }
+    DbSet<SystemSetting> SystemSettings { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
