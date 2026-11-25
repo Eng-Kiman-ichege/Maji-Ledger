@@ -89,7 +89,7 @@ function LoginForm() {
     : ["IEC 62055-41 STS tokens", "Instant M-Pesa vending", "Smart meter telemetry", "QR Scan-to-Pay", "5% auto-reconciliation"];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", width: "100%" }}>
+    <div className="login-container" style={{ display: "flex", minHeight: "100vh", width: "100%" }}>
 
       {/* ── LEFT PANEL (Brand / Features) ── */}
       <div style={{ flex: "0 0 44%", background: brandGrad, display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 52px", position: "relative", overflow: "hidden", color: "#fff" }}
@@ -159,12 +159,27 @@ function LoginForm() {
       </div>
 
       {/* ── RIGHT PANEL (Form) ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "#f8fafc", padding: "48px 32px", position: "relative", overflow: "hidden" }}>
+      <div className="login-right-panel" style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "#f8fafc", padding: "48px 32px", position: "relative", overflow: "hidden" }}>
         {/* bg decoration */}
         <div style={{ position: "absolute", right: -80, top: -80, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${isProperty ? "#818cf8" : "#38bdf8"}, transparent)`, opacity: 0.08, pointerEvents: "none" }} />
         <div style={{ position: "absolute", left: -60, bottom: -60, width: 240, height: 240, borderRadius: "50%", background: `radial-gradient(circle, ${isProperty ? "#6366f1" : "#0284c7"}, transparent)`, opacity: 0.06, pointerEvents: "none" }} />
 
         <div style={{ width: "100%", maxWidth: 420, position: "relative" }}>
+
+          {/* Mobile-only Brand Header */}
+          <div className="login-mobile-brand" style={{ alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 20 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: isProperty ? "linear-gradient(135deg, #4f46e5, #6366f1)" : "linear-gradient(135deg, #0284c7, #0ea5e9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+              {isProperty ? "🏢" : "💧"}
+            </div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#0f172a", lineHeight: 1.1 }}>
+                {isProperty ? <>Property<span style={{ color: "#4f46e5" }}>Ledger</span></> : <><span style={{ color: "#0284c7" }}>Maji</span> Ledger</>}
+              </div>
+              <div style={{ fontSize: 9, color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                {isProperty ? "Property Management" : "Smart Water Utility"}
+              </div>
+            </div>
+          </div>
 
           {/* Suite switcher tabs */}
           <div style={{ background: "#f1f5f9", borderRadius: 12, padding: 5, display: "flex", gap: 4, marginBottom: 32, border: "1px solid #e2e8f0" }}>
@@ -295,12 +310,6 @@ function LoginForm() {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .login-left-panel { display: none !important; }
-        }
-      `}</style>
     </div>
   );
 }

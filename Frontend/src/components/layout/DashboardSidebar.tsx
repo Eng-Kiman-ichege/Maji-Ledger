@@ -207,45 +207,15 @@ export default function DashboardSidebar({ mobileOpen = false, onClose }: Dashbo
     <aside
       className={`dashboard-sidebar ${mobileOpen ? "mobile-open" : ""}`}
       style={{
-        width: 250,
-        flexShrink: 0,
         background: brandBg,
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        position: "sticky",
-        top: 0,
         overflowY: "auto",
         overflowX: "hidden",
         boxShadow: "2px 0 20px rgba(0,0,0,0.25)",
         scrollbarWidth: "none",
-        zIndex: 100,
       }}
     >
       <style>{`
         aside::-webkit-scrollbar { display: none; }
-
-        @media (max-width: 1023px) {
-          .dashboard-sidebar {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            bottom: 0 !important;
-            height: 100vh !important;
-            height: 100dvh !important;
-            width: 280px !important;
-            z-index: 1000 !important;
-            transform: translateX(-100%);
-            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
-            box-shadow: 4px 0 32px rgba(0,0,0,0.5) !important;
-          }
-          .dashboard-sidebar.mobile-open {
-            transform: translateX(0) !important;
-          }
-          .sidebar-mobile-close-btn {
-            display: flex !important;
-          }
-        }
       `}</style>
 
       {/* ── BRAND HEADER ── */}

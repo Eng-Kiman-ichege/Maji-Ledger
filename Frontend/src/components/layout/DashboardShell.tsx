@@ -62,6 +62,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <div
+      className="dashboard-shell-container"
       style={{
         display: "flex",
         minHeight: "100vh",
@@ -105,7 +106,6 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
             position: "sticky",
             top: 0,
             zIndex: 900,
-            display: "none", // overridden in CSS for mobile
             alignItems: "center",
             justifyContent: "space-between",
             padding: "10px 16px",
