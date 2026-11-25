@@ -219,10 +219,10 @@ export default function DashboardOverviewClient() {
   }
 
   return (
-    <div style={{ padding: "28px 32px", maxWidth: 1440, margin: "0 auto" }}>
+    <div className="dashboard-page-container" style={{ padding: "28px 32px", maxWidth: 1440, margin: "0 auto" }}>
 
       {/* ── HERO BANNER ── */}
-      <div style={{
+      <div className="responsive-hero" style={{
         background: "linear-gradient(135deg, #1e1b4b 0%, #3730a3 40%, #4f46e5 70%, #6366f1 100%)",
         borderRadius: 20,
         padding: "32px 36px",
@@ -270,7 +270,7 @@ export default function DashboardOverviewClient() {
         </div>
 
         {/* Quick stat pills */}
-        <div style={{ display:"flex", gap:16, marginTop:24, flexWrap:"wrap", position:"relative" }}>
+        <div className="responsive-stat-strip" style={{ display:"flex", gap:16, marginTop:24, flexWrap:"wrap", position:"relative" }}>
           {[
             { label: "Properties", value: properties.length, icon: "🏢" },
             { label: "Total Units", value: totalUnits, icon: "🏠" },
@@ -278,7 +278,7 @@ export default function DashboardOverviewClient() {
             { label: "Vacant", value: totalUnits - occupiedUnits, icon: "🔑" },
             { label: "Collection Rate", value: `${collectionRate}%`, icon: "📈" },
           ].map(s => (
-            <div key={s.label} style={{ background:"rgba(255,255,255,0.1)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:12, padding:"10px 16px", display:"flex", flexDirection:"column", gap:2, minWidth:100 }}>
+            <div key={s.label} className="responsive-stat-pill" style={{ background:"rgba(255,255,255,0.1)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:12, padding:"10px 16px", display:"flex", flexDirection:"column", gap:2, minWidth:100 }}>
               <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"rgba(255,255,255,0.6)" }}>{s.icon} {s.label}</span>
               <span style={{ fontSize:22, fontWeight:900, lineHeight:1.2 }}>{s.value}</span>
             </div>
@@ -588,7 +588,7 @@ export default function DashboardOverviewClient() {
       {/* ── ADD PROPERTY MODAL ── */}
       {isAddPropertyOpen && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:16, backdropFilter:"blur(4px)" }}>
-          <div style={{ background:"#fff", borderRadius:16, width:"100%", maxWidth:480, padding:28, boxShadow:"0 24px 60px -8px rgba(0,0,0,0.3)" }}>
+          <div className="responsive-modal" style={{ background:"#fff", borderRadius:16, width:"100%", maxWidth:480, padding:28, boxShadow:"0 24px 60px -8px rgba(0,0,0,0.3)", maxHeight:"90vh", overflowY:"auto" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
               <div>
                 <h2 style={{ fontSize:18, fontWeight:800, color:"#0f172a", margin:0 }}>Add New Property</h2>

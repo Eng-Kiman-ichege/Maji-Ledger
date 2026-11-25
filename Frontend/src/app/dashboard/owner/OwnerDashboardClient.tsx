@@ -509,7 +509,7 @@ export default function OwnerDashboardClient() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(440px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 400px), 1fr))",
           gap: 20,
           marginBottom: 28,
         }}

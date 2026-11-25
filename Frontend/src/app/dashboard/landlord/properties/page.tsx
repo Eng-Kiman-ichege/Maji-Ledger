@@ -209,7 +209,7 @@ export default function LandlordPropertiesPage() {
           </p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 22 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))", gap: 22 }}>
           {filtered.map((p, idx) => {
             const occupancyRate = p.apartmentCount > 0 ? Math.round((p.occupiedUnits / p.apartmentCount) * 100) : 0;
             const colors = [

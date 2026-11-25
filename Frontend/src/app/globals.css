@@ -237,3 +237,115 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOBILE & RESPONSIVE DESIGN SYSTEM
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Mobile top header toggle */
+@media (max-width: 1023px) {
+  .dashboard-mobile-header {
+    display: flex !important;
+  }
+}
+
+/* Fluid responsive dashboard layout */
+@media (max-width: 768px) {
+  /* Layout containers */
+  .dashboard-main-content {
+    padding: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  .dashboard-page-container {
+    padding: 14px 12px !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Responsive Hero Banners */
+  .responsive-hero {
+    padding: 20px 16px !important;
+    border-radius: 14px !important;
+    margin-bottom: 18px !important;
+  }
+
+  /* Hero Stat strips */
+  .responsive-stat-strip {
+    gap: 8px !important;
+    margin-top: 16px !important;
+  }
+
+  .responsive-stat-pill {
+    padding: 8px 12px !important;
+    min-width: calc(50% - 4px) !important;
+    flex: 1 1 calc(50% - 4px) !important;
+  }
+
+  /* Touch-friendly table containers with momentum scroll */
+  .table-responsive,
+  div[style*="overflowX: auto"],
+  div[style*="overflow-x: auto"] {
+    -webkit-overflow-scrolling: touch !important;
+    max-width: 100% !important;
+  }
+
+  div[style*="overflowX: auto"] > table,
+  div[style*="overflow-x: auto"] > table,
+  .table-responsive > table {
+    min-width: 620px;
+  }
+
+  /* Full-bleed table containers on mobile */
+  .responsive-table-card {
+    border-radius: 14px !important;
+    margin-bottom: 20px !important;
+  }
+
+  /* Floating modals */
+  .responsive-modal {
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+    overflow-y: auto !important;
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+    width: 95vw !important;
+  }
+
+  /* Filter bars */
+  .responsive-filter-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .responsive-filter-bar input,
+  .responsive-filter-bar select,
+  .responsive-filter-bar button {
+    width: 100% !important;
+  }
+
+  /* Quick action cards */
+  .responsive-action-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Login card padding */
+  .login-card {
+    padding: 24px 18px !important;
+    border-radius: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-stat-pill {
+    min-width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+  .responsive-action-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+

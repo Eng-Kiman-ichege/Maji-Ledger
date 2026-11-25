@@ -48,7 +48,7 @@ export default function AdminIntegrationsPage() {
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 16 }}>
         {loading ? (
           <div style={{ padding: 40, textAlign: "center", color: "#64748b", gridColumn: "1 / -1" }}>
             Diagnosing connectors...

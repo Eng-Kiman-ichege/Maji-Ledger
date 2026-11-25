@@ -145,8 +145,8 @@ function LoginForm() {
               Demo Access
             </div>
             {[
-              { role: "Admin", email: "admin@maji.co.ke", pw: "Admin@1234!" },
-              { role: "Owner", email: "owner@maji.co.ke", pw: "Owner@1234!" },
+              { role: "Admin", email: "admin@majiledger.com", pw: "Admin@123456" },
+              { role: "Owner", email: "owner@kilimani.com", pw: "Owner@123456" },
             ].map(d => (
               <div key={d.role} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.07)", fontSize: 12 }}>
                 <span style={{ fontWeight: 700, color: "rgba(255,255,255,0.7)", minWidth: 50 }}>{d.role}</span>
@@ -189,7 +189,7 @@ function LoginForm() {
           </div>
 
           {/* Card */}
-          <div style={{ background: "#fff", borderRadius: 20, padding: "36px 36px 32px", boxShadow: "0 8px 48px -8px rgba(0,0,0,0.12)", border: "1px solid #e2e8f0" }}>
+          <div className="login-card" style={{ background: "#fff", borderRadius: 20, padding: "36px 36px 32px", boxShadow: "0 8px 48px -8px rgba(0,0,0,0.12)", border: "1px solid #e2e8f0" }}>
             <div style={{ marginBottom: 28 }}>
               <h2 style={{ fontSize: 24, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.4px", margin: "0 0 6px", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 Sign In to {isProperty ? "Property Suite" : "Maji Ledger"}
@@ -274,13 +274,13 @@ function LoginForm() {
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {isProperty ? (
                   <>
-                    <div style={{ fontSize: 12, color: "#64748b" }}><strong style={{ color: "#334155" }}>Admin/Manager:</strong> admin@maji.co.ke · Admin@1234!</div>
-                    <div style={{ fontSize: 12, color: "#64748b" }}><strong style={{ color: "#334155" }}>Owner:</strong> owner@maji.co.ke · Owner@1234!</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}><strong style={{ color: "#334155" }}>Admin/Manager:</strong> admin@majiledger.com · Admin@123456</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}><strong style={{ color: "#334155" }}>Owner:</strong> owner@kilimani.com · Owner@123456</div>
                   </>
                 ) : (
                   <>
-                    <div style={{ fontSize: 12, color: "#64748b" }}><strong style={{ color: "#334155" }}>Water Admin:</strong> admin@maji.co.ke · Admin@1234!</div>
-                    <div style={{ fontSize: 12, color: "#64748b" }}><strong style={{ color: "#334155" }}>Water Owner:</strong> owner@maji.co.ke · Owner@1234!</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}><strong style={{ color: "#334155" }}>Water Admin:</strong> admin@majiledger.com · Admin@123456</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}><strong style={{ color: "#334155" }}>Water Owner:</strong> owner@kilimani.com · Owner@123456</div>
                   </>
                 )}
               </div>

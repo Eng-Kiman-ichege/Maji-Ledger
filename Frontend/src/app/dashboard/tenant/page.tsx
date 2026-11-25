@@ -262,7 +262,7 @@ export default function TenantDashboardPage() {
       </div>
 
       {/* Two Column Section: Recent Rent & Tenancy Support */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 400px), 1fr))", gap: 24 }}>
         {/* Recent Rent Payments */}
         <div
           style={{

@@ -130,10 +130,10 @@ export default function LandlordDashboardPage() {
   const rentBars = [65, 70, 60, 85, 72, 90, rStats?.monthlyCollected ? Math.min(100, (rStats.monthlyCollected / (rStats.monthlyExpectedRent || 1)) * 100) : 0].map(v => Math.max(5, v));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24, padding: "4px 0" }}>
+    <div className="dashboard-page-container" style={{ display: "flex", flexDirection: "column", gap: 24, padding: "28px 32px" }}>
 
       {/* ── Hero Welcome Banner ── */}
-      <div style={{
+      <div className="responsive-hero" style={{
         background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4f46e5 70%, #6366f1 100%)",
         borderRadius: 20,
         padding: "28px 32px",
@@ -190,14 +190,14 @@ export default function LandlordDashboardPage() {
         </div>
 
         {/* Quick stat pills */}
-        <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap", position: "relative", zIndex: 1 }}>
+        <div className="responsive-stat-strip" style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap", position: "relative", zIndex: 1 }}>
           {[
             { label: "Properties", value: pStats?.totalProperties || 0, icon: "🏢" },
             { label: "Total Units", value: pStats?.totalApartments || 0, icon: "🚪" },
             { label: "Occupied", value: pStats?.occupiedApartments || 0, icon: "✅" },
             { label: "Vacant", value: pStats?.vacantApartments || 0, icon: "⭕" },
           ].map((s) => (
-            <div key={s.label} style={{
+            <div key={s.label} className="responsive-stat-pill" style={{
               background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)",
               borderRadius: 10, padding: "10px 16px",
               border: "1px solid rgba(255,255,255,0.2)",

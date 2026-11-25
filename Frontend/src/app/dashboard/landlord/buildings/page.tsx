@@ -109,7 +109,7 @@ export default function LandlordBuildingsPage() {
           <p style={{ fontSize: 13, color: "#64748b" }}>No buildings match your filter criteria.</p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: 16 }}>
           {filtered.map((b) => (
             <div
               key={b.id}

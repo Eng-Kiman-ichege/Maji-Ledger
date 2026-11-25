@@ -125,10 +125,10 @@ export default function WaterDashboardPage() {
   }
 
   return (
-    <div style={{ padding:"28px 32px", maxWidth:1440, margin:"0 auto" }}>
+    <div className="dashboard-page-container" style={{ padding:"28px 32px", maxWidth:1440, margin:"0 auto" }}>
 
       {/* ── HERO BANNER – Sky Blue ── */}
-      <div style={{
+      <div className="responsive-hero" style={{
         background:"linear-gradient(135deg, #0c4a6e 0%, #075985 35%, #0284c7 70%, #0ea5e9 100%)",
         borderRadius:20, padding:"32px 36px", marginBottom:28,
         position:"relative", overflow:"hidden", color:"#fff",
@@ -166,7 +166,7 @@ export default function WaterDashboardPage() {
         </div>
 
         {/* Quick stat pills */}
-        <div style={{ display:"flex", gap:16, marginTop:24, flexWrap:"wrap", position:"relative" }}>
+        <div className="responsive-stat-strip" style={{ display:"flex", gap:16, marginTop:24, flexWrap:"wrap", position:"relative" }}>
           {[
             { label:"Total Revenue", value: formatKes(data?.totalRevenue || 0), icon:"💰" },
             { label:"Units Purchased", value: `${Number(data?.totalUnitsSold || 0).toFixed(0)} m³`, icon:"📦" },
@@ -174,7 +174,7 @@ export default function WaterDashboardPage() {
             { label:"Failed Payments", value: data?.failedPayments || 0, icon:"⚠️" },
             { label:"Pending Tokens", value: data?.pendingTokens || 0, icon:"🔑" },
           ].map(s => (
-            <div key={s.label} style={{ background:"rgba(255,255,255,0.1)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:12, padding:"10px 16px", display:"flex", flexDirection:"column", gap:2, minWidth:120 }}>
+            <div key={s.label} className="responsive-stat-pill" style={{ background:"rgba(255,255,255,0.1)", backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:12, padding:"10px 16px", display:"flex", flexDirection:"column", gap:2, minWidth:120 }}>
               <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"rgba(255,255,255,0.6)" }}>{s.icon} {s.label}</span>
               <span style={{ fontSize:22, fontWeight:900, lineHeight:1.2 }}>{s.value}</span>
             </div>

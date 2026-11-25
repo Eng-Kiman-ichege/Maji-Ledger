@@ -27,11 +27,17 @@ import {
   AlertTriangle,
   Zap,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { PlatformSuite } from "@/contexts/AuthContext";
 
-export default function DashboardSidebar() {
+export interface DashboardSidebarProps {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function DashboardSidebar({ mobileOpen = false, onClose }: DashboardSidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAdmin, isOwner, isTenant, activeSuite, setActiveSuite, logout } = useAuth();
@@ -147,6 +153,7 @@ export default function DashboardSidebar() {
       <Link
         key={item.href}
         href={item.href}
+        onClick={() => onClose?.()}
         style={{
           display: "flex",
           alignItems: "center",
@@ -197,48 +204,107 @@ export default function DashboardSidebar() {
   );
 
   return (
-    <aside style={{
-      width: 240,
-      flexShrink: 0,
-      background: brandBg,
-      display: "flex",
-      flexDirection: "column",
-      height: "100vh",
-      position: "sticky",
-      top: 0,
-      overflowY: "auto",
-      overflowX: "hidden",
-      boxShadow: "2px 0 20px rgba(0,0,0,0.25)",
-      scrollbarWidth: "none",
-    }}>
-      <style>{`aside::-webkit-scrollbar{display:none}`}</style>
+    <aside
+      className={`dashboard-sidebar ${mobileOpen ? "mobile-open" : ""}`}
+      style={{
+        width: 250,
+        flexShrink: 0,
+        background: brandBg,
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        position: "sticky",
+        top: 0,
+        overflowY: "auto",
+        overflowX: "hidden",
+        boxShadow: "2px 0 20px rgba(0,0,0,0.25)",
+        scrollbarWidth: "none",
+        zIndex: 100,
+      }}
+    >
+      <style>{`
+        aside::-webkit-scrollbar { display: none; }
+
+        @media (max-width: 1023px) {
+          .dashboard-sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            bottom: 0 !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            width: 280px !important;
+            z-index: 1000 !important;
+            transform: translateX(-100%);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            box-shadow: 4px 0 32px rgba(0,0,0,0.5) !important;
+          }
+          .dashboard-sidebar.mobile-open {
+            transform: translateX(0) !important;
+          }
+          .sidebar-mobile-close-btn {
+            display: flex !important;
+          }
+        }
+      `}</style>
 
       {/* ── BRAND HEADER ── */}
-      <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: isProperty
-              ? "linear-gradient(135deg, #818cf8 0%, #6366f1 100%)"
-              : "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 18, boxShadow: `0 4px 12px rgba(0,0,0,0.3)`,
-          }}>
-            {isProperty ? "🏢" : "💧"}
-          </div>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.3px" }}>
-              {isProperty ? (
-                <>Property<span style={{ color: "#a5b4fc" }}>Ledger</span></>
-              ) : (
-                <><span style={{ color: "#7dd3fc" }}>Maji</span> Ledger</>
-              )}
+      <div style={{ padding: "18px 16px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <Link
+            href="/"
+            onClick={() => onClose?.()}
+            style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}
+          >
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: isProperty
+                ? "linear-gradient(135deg, #818cf8 0%, #6366f1 100%)"
+                : "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 18, boxShadow: `0 4px 12px rgba(0,0,0,0.3)`,
+              flexShrink: 0,
+            }}>
+              {isProperty ? "🏢" : "💧"}
             </div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-              {isProperty ? "Property Management" : "Smart Water Utility"}
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {isProperty ? (
+                  <>Property<span style={{ color: "#a5b4fc" }}>Ledger</span></>
+                ) : (
+                  <><span style={{ color: "#7dd3fc" }}>Maji</span> Ledger</>
+                )}
+              </div>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {isProperty ? "Property Management" : "Smart Water Utility"}
+              </div>
             </div>
-          </div>
-        </Link>
+          </Link>
+
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="sidebar-mobile-close-btn"
+              aria-label="Close navigation menu"
+              style={{
+                background: "rgba(255,255,255,0.12)",
+                border: "1px solid rgba(255,255,255,0.18)",
+                borderRadius: 8,
+                width: 32,
+                height: 32,
+                cursor: "pointer",
+                color: "#fff",
+                display: "none", // shown only on mobile by media query
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                marginLeft: 8,
+              }}
+            >
+              <X size={18} />
+            </button>
+          )}
+        </div>
 
         {/* Suite Switcher */}
         <div style={{ background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: 4, display: "flex", gap: 4, border: "1px solid rgba(255,255,255,0.08)" }}>

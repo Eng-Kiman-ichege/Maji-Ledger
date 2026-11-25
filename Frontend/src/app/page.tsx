@@ -126,7 +126,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: 28 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))", gap: 28 }}>
 
           {/* Property Suite Card */}
           <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #e0e7ff", boxShadow: "0 8px 40px -8px rgba(79,70,229,0.15)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
